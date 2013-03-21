@@ -10,13 +10,19 @@ import javax.inject.Named;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.events.change.CmsChangeset;
+import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 public class ReposIndexingImpl implements ReposIndexing {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private SolrServer repositem;
 
 	private Map<CmsRepository, RepoRevision> complete = new HashMap<CmsRepository, RepoRevision>();
@@ -28,6 +34,13 @@ public class ReposIndexingImpl implements ReposIndexing {
 	
 	@Override
 	public void sync(CmsRepository repository, RepoRevision revision) {
+		if (complete.containsKey(repository)) {
+			
+		} else {
+			logger.info("Indexing status unknown for repository {}. Polling.");
+			complete.put(repository, null);
+		}
+		
 		SolrInputDocument docStart = new SolrInputDocument();
 		docStart.addField("id", getIdCommit(repository, revision));
 		docStart.addField("type", "commit");
@@ -67,6 +80,14 @@ public class ReposIndexingImpl implements ReposIndexing {
 			throw new RuntimeException("error not handled", e);
 		}
 	}
+	
+	void sync(CmsRepository repository, ChangesetProvider changesets, RepoRevision toRevision) {
+		
+	}
+	
+	void index(CmsRepository repository, CmsChangeset changeset) {
+		
+	}
 
 	String getId(CmsRepository repository, RepoRevision revision, CmsItemPath path) {
 		return repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + getIdRevision(revision); 
@@ -83,6 +104,11 @@ public class ReposIndexingImpl implements ReposIndexing {
 	@Override
 	public RepoRevision getRevComplete(CmsRepository repository) {
 		return complete.get(repository);
+	}
+
+	@Override
+	public RepoRevision getRevProgress(CmsTestRepository repo) {
+		return null;
 	}
 
 }

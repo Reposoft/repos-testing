@@ -2,6 +2,7 @@ package se.repos.indexing;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -17,6 +18,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrInputDocument;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -89,7 +91,7 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 	}
 	
 	@Test
-	public void testBasicSingleRevisionRepo() throws SolrServerException {
+	public void testBasicSingleRevisionRepo() throws SolrServerException, IOException {
 		assertQ("index should be empty on each test run", req("*:*"), "//result[@numFound='0']");
 		ReposIndexing indexing = getIndexing();
 		
@@ -104,15 +106,37 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		assertNotNull("Should track indexing", indexing.getRevComplete(repo));
 		assertEquals("should have indexed up to the given revision", 1, indexing.getRevComplete(repo).getNumber());
 		
-		// new indexing service
-		ReposIndexing indexing2 = getIndexing();
-		assertTrue("New indexing instance can't know current highest revision until it has been given a repository", null == indexing2.getRevComplete(repo));
-		// TODO shouldn't the service be per repository? How does that work when there are multiple hooks at the same time?
-		
+
 		QueryResponse r1 = getSolr().query(new SolrQuery("type:commit").addSort("rev", ORDER.asc));
-		//assertEquals("Rev 0 should have been indexed in addition to 1", 2, r1.getResults().size());
+		assertEquals("Rev 0 should have been indexed in addition to 1", 2, r1.getResults().size());
 		assertEquals("Rev 0 should be marked as completed", false, r1.getResults().get(0).getFieldValue("inprogress"));
 		
+		// new indexing service, recover sync status
+		ReposIndexing indexing2 = getIndexing();
+		assertNotNull("New indexing should poll for indexed revision",
+				indexing2.getRevComplete(repo));
+		assertTrue("New indexing should poll for highest indexed revision", 
+				indexing2.getRevComplete(repo).getNumber() == 1);
+	
+		// mess with the index to see how sync status is handled
+		SolrInputDocument fake2 = new SolrInputDocument();
+		String id2 = r1.getResults().get(1).getFieldValue("id").toString().replace("#1", "#2");
+		fake2.setField("id", id2);
+		fake2.setField("progress", true);
+		getSolr().add(fake2);
+		getSolr().commit();
+		
+		assertEquals("Service is not expected to handle cuncurrent indexing", 1, indexing2.getRevComplete(repo));
+		ReposIndexing indexing3 = getIndexing();
+		assertEquals("New indexing service should not mistake aborted indexing as completed", 1, indexing3.getRevComplete(repo));
+		assertEquals("New indexing service should see that a revision has started but not completed", 2, indexing3.getRevProgress(repo));
+		
+		try {
+			indexing3.sync(repo, new RepoRevision(2, new Date(2)));
+			fail("Should attempt to index rev 2 because it is marked as in progress and the new indexing instance does not know the state of that operation so it has to assume that it was aborted");
+		} catch (Exception e) {
+			// expected, there is no revision 2
+		}
 	}
 
 }
