@@ -34,6 +34,14 @@
 		Type of item: "commit", "file", "folder". Type affects which fields are expected to exist.
 		-->
 		<field name="type" type="string" indexed="true" stored="true" multiValued="false" />
+		<!--
+		True for items and commits that are still head
+		-->
+		<field name="head" type="boolean" indexed="true" stored="true" multiValued="false" />
+		<!--
+		For items whose indexing progress is tracked, typically commits
+		-->
+		<field name="inprogress" type="boolean" indexed="true" stored="true" multiValued="false" />
 
 		<!-- commit type fields -->
 		<field name="revauthor" type="string" indexed="true" stored="true" multiValued="false" />
@@ -64,6 +72,7 @@
 		<fieldtype name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true" />
 		<fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0" />
 		<fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
+		<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
 	</types>
 	
 </schema>
