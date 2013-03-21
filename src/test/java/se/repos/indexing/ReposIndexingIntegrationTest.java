@@ -3,6 +3,10 @@ package se.repos.indexing;
 import static org.junit.Assert.*;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrServer;
@@ -12,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import se.repos.indexing.testconfig.IndexingTestModule;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 
@@ -53,8 +58,9 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 	}
 	
 	@After
-	public void tearDown() {
+	public void tearDown() throws Exception {
 		SvnTestSetup.getInstance().tearDown();
+		super.tearDown();
 	}
 	
 	/**
@@ -65,7 +71,6 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 	}
 	
 	public ReposIndexing getIndexing() {
-		assertQ("index should be empty on each test run", req("*:*"), "//result[@numFound='0']");
 		SolrServer solr = getTestServer();
 		Injector injector = Guice.createInjector(new IndexingTestModule(solr));
 		return injector.getInstance(ReposIndexing.class);
@@ -73,14 +78,26 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 	
 	@Test
 	public void testBasicSingleRevisionRepo() {
+		assertQ("index should be empty on each test run", req("*:*"), "//result[@numFound='0']");
 		ReposIndexing indexing = getIndexing();
-		assertEquals("Should report null as last complete revision when the index is empty", null, indexing.getRevComplete());
 		
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
 		assertNotNull(dumpfile);
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository().load(dumpfile);
-		repo.setKeep(true);
+		
+		assertEquals("Should report null as last complete revision when the index is empty", null, indexing.getRevComplete(repo));
+		
+		indexing.sync(repo, new RepoRevision(1, new Date(1))); // 2012-09-27T12:05:34.040515Z
+		assertNotNull("Should track indexing", indexing.getRevComplete(repo));
+		assertEquals("should have indexed up to the given revision", 1, indexing.getRevComplete(repo).getNumber());
+		
+		// new indexing service
+		ReposIndexing indexing2 = getIndexing();
+		assertTrue("New indexing instance can't know current highest revision until it has been given a repository", null == indexing2.getRevComplete(repo));
+		// TODO shouldn't the service be per repository? How does that work when there are multiple hooks at the same time?
+		
+		assertQ("should have indexed", req("type:commit"), "//result[@numFound='1']");
 	}
 
 }

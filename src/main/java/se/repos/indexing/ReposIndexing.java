@@ -7,6 +7,6 @@ public interface ReposIndexing {
 
 	public void sync(CmsRepository repository, RepoRevision revision);
 	
-	public RepoRevision getRevComplete();
+	public RepoRevision getRevComplete(CmsRepository repository);
 	
 }
