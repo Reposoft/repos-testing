@@ -2,6 +2,7 @@ package se.repos.indexing;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,8 +11,13 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,16 +71,25 @@ public class ReposIndexingImpl implements ReposIndexing {
 	 */
 	@Override
 	public void sync(CmsRepository repository, RepoRevision revision) {
-		if (completed.containsKey(repository)) {
-			
-		} else {
-			logger.info("Indexing status unknown for repository {}. Polling.");
-			completed.put(repository, null);
+		
+		if (!completed.containsKey(repository)) {
+			if (running.containsKey(repository)) {
+				throw new AssertionError("Indexing state is inconsistent. Could indicate concurrent indexing operations.");
+			}
+			logger.info("Unknown index completeion status for repository {}. Polling.", repository);
+			RepoRevision c = getIndexedRevisionHighestCompleted(repository);
+			RepoRevision pl = getIndexedRevisionLowestStarted(repository);
+			RepoRevision ph = getIndexedRevisionHighestStarted(repository);
+			if (pl != null) {
+				logger.warn("Index contains unfinished revisions between {} and {} at first sync. Reindexing those.", pl, ph);
+			}
 		}
 		
-				
-
-		
+		// running may be null if everything is completed
+		RepoRevision done = completed.get(repository);
+		RepoRevision runs = running.get(repository);
+		logger.info("Indexing {}, running {}, completed {}", new Object[] {revision, runs, done});
+		Iterable<RepoRevision> range = getIndexingRange(revision, runs, done);
 		
 		// end of changeset indexing (i.e. after all background work too)
 
@@ -85,6 +100,11 @@ public class ReposIndexingImpl implements ReposIndexing {
 		} catch (IOException e) {
 			throw new RuntimeException("error not handled", e);
 		}
+	}
+	
+	protected Iterable<RepoRevision> getIndexingRange(RepoRevision revision,
+			RepoRevision runs, RepoRevision done) {
+		return null;
 	}
 	
 	/**
@@ -175,12 +195,57 @@ public class ReposIndexingImpl implements ReposIndexing {
 		return new RunRevComplete(id);
 	}
 	
+	protected String escape(String fieldValue) {
+		return fieldValue.replaceAll("([:^\\(\\)!~/ ])", "\\\\$1");
+	}
+	
+	protected String quote(String fieldValue) {
+		return '"' + fieldValue.replace("\"", "\\\"") + '"';
+	}
+	
+	protected RepoRevision getIndexedRevisionHighestCompleted(CmsRepository repository) {
+		return getIndexedRevision(repository, "true", ORDER.desc);
+	}
+	
+	protected RepoRevision getIndexedRevisionHighestStarted(CmsRepository repository) {
+		return getIndexedRevision(repository, "false", ORDER.desc);
+	}
+	
+	protected RepoRevision getIndexedRevisionLowestStarted(CmsRepository repository) {
+		return getIndexedRevision(repository, "false", ORDER.asc);
+	}
+	
+	private RepoRevision getIndexedRevision(CmsRepository repository, String valComplete, ORDER order) {
+		SolrQuery query = new SolrQuery("type:commit AND complete:" + valComplete + " AND id:" + escape(getIdRepository(repository)) + "*");
+		query.setRows(1);
+		query.setFields("rev", "revt");
+		query.setSort("rev", order); // the timestamp might be in a different order in svn, if revprops or loading has been used irregularly
+		QueryResponse resp;
+		try {
+			resp = repositem.query(query);
+		} catch (SolrServerException e) {
+			throw new IndexWriteException(e);
+		}
+		SolrDocumentList results = resp.getResults();
+		if (results.getNumFound() == 0) {
+			return null;
+		}
+		SolrDocument r = results.get(0);
+		Long rev = (Long) r.getFieldValue("rev");
+		Date revt = (Date) r.getFieldValue("revt");
+		return new RepoRevision(rev, revt);
+	}
+	
 	String getId(CmsRepository repository, RepoRevision revision, CmsItemPath path) {
 		return repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + getIdRevision(revision); 
 	}
+
+	String getIdRepository(CmsRepository repository) {
+		return repository.getHost() + repository.getUrlAtHost() + "#";
+	}	
 	
 	String getIdCommit(CmsRepository repository, RepoRevision revision) {
-		return repository.getHost() + repository.getUrlAtHost() + "#" + getIdRevision(revision);
+		return getIdRepository(repository) + getIdRevision(revision);
 	}
 	
 	private String getIdRevision(RepoRevision revision) {

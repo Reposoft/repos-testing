@@ -3,6 +3,7 @@ package se.repos.indexing;
 import static org.junit.Assert.*;
 
 import java.util.Date;
+import java.util.Iterator;
 
 import org.junit.Test;
 
@@ -23,6 +24,21 @@ public class ReposIndexingImplTest {
 		assertEquals("host.name/svn/repo/dir@123", impl.getId(repo, rev, new CmsItemPath("/dir")));
 		assertEquals("repo root", "host.name/svn/repo@123", impl.getId(repo, rev, null));
 		assertEquals("commit ids should not be confused with root items", "host.name/svn/repo#123", impl.getIdCommit(repo, rev));
+		assertEquals("repository ids are not used directly but useful for query on commit status", "host.name/svn/repo#", impl.getIdRepository(repo));
 	}
 
+	@Test
+	public void testIndexingRange() {
+		RepoRevision r3 = new RepoRevision(3, new Date(3));
+		RepoRevision r5 = new RepoRevision(5, new Date(5));
+		RepoRevision r7 = new RepoRevision(7, new Date(7));
+		ReposIndexingImpl impl = new ReposIndexingImpl();
+		Iterator<RepoRevision> ra = impl.getIndexingRange(r7, r5, r3).iterator();
+		
+		// last one
+		RepoRevision last = ra.next();
+		assertEquals(r7, last);
+		assertNotNull("hisghet rev must be a complete revision", last.getDate());
+	}
+	
 }
