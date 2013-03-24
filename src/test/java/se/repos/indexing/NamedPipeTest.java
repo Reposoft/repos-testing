@@ -8,9 +8,17 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
+import org.tmatesoft.svn.core.SVNCommitInfo;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
+import org.tmatesoft.svn.core.wc2.SvnRemoteDelete;
+import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
@@ -66,7 +74,8 @@ public class NamedPipeTest {
 		}
 		postCommitSh.setExecutable(true);
 		
-		File pipe = new File(hooksdir, "post-commit-pipe");
+		// set up named pipe
+		final File pipe = new File(hooksdir, "post-commit-pipe");
 		try {
 			Runtime.getRuntime().exec("mkfifo " + pipe.getAbsolutePath());
 		} catch (IOException e) {
@@ -74,16 +83,69 @@ public class NamedPipeTest {
 		}
 		
 		try {
+			// hook that writes revision number to named pipe
 			FileWriter topipe = new FileWriter(postCommitSh);
 			topipe.write("#!/bin/sh\n");
-			topipe.write("echo $1 $2 > " + pipe.getAbsolutePath() + "\n");
+			topipe.write("echo $2 > " + pipe.getAbsolutePath() + "\n");
 			topipe.close();
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
 		// note that the hook should block until java has read the message
 		
+		// set up receiver
+	    final List<Long> revs = new LinkedList<Long>();
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					BufferedReader r = new BufferedReader(new FileReader(pipe));
+					// TODO make reading take 1000 ms so we can verify that the svn operation blocks
+					String echoed = r.readLine();
+					revs.add(Long.parseLong(echoed));
+					// we'd have to run indexing of the revision here, and make
+					// all of it sync
+					// have different test setups for indexing fast and indexing
+					// slow (most tests won't need fulltext, thumbs, xml)
+					// TODO when to close reader during a test?
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	    t.start();
 		
+		// now do an operation
+		SvnOperationFactory op = new SvnOperationFactory();
+		op.setAuthenticationManager(repo.getSvnkit().getAuthenticationManager());
+		SvnRemoteDelete del = op.createRemoteDelete();
+		del.setCommitMessage("Deleting file");
+		try {
+			del.setSingleTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl() + "/t1.txt")));
+		} catch (SVNException e) {
+			fail("svnkit's api's make some very easy things very difficult. " + e.getMessage());
+		}
+		long timeBeforeCommit = System.currentTimeMillis();
+		SVNCommitInfo commitInfo = null;
+		try {
+			commitInfo = del.run();
+		} catch (SVNException e) {
+			fail("Operation on test repo failed. " + e.getMessage());
+		}
+		assertEquals("should have deleted", 2, commitInfo.getNewRevision());
+		long timeCommit = System.currentTimeMillis() - timeBeforeCommit;
+		
+		// quit pipe receiver
+	    try {
+			t.join();
+		} catch (InterruptedException e) {
+			fail("threading stuff. " + e.getMessage());
+		}
+
+	    // verify that hook revision has been received
+	    assertEquals("Should have got the revision from the hook", 2, revs.get(0).intValue());
+	    assertTrue("The commit should block while the indexing operation runs, got " + timeCommit, timeCommit > 1000);
+	    assertTrue("The actual commont shouldn't take long, got " + timeCommit, timeCommit < 1500);
 	}
 	
 }
