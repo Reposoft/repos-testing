@@ -1,11 +1,20 @@
 package se.repos.indexing.testconfig;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrServer;
+import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.ReposIndexingImpl;
+import se.repos.indexing.item.IndexingItemHandler;
+import se.simonsoft.cms.admin.CmsChangesetReader;
+import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
+import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
 public class IndexingTestModule extends AbstractModule {
@@ -22,6 +31,15 @@ public class IndexingTestModule extends AbstractModule {
 			.toInstance(repositem);
 		
 		bind(ReposIndexing.class).to(ReposIndexingImpl.class);
+		
+		List<IndexingItemHandler> blocking = new LinkedList<IndexingItemHandler>();
+		List<IndexingItemHandler> background = new LinkedList<IndexingItemHandler>();
+		bind(new TypeLiteral<Iterable<IndexingItemHandler>>(){}).annotatedWith(Names.named("blocking")).toInstance(blocking);
+		bind(new TypeLiteral<Iterable<IndexingItemHandler>>(){}).annotatedWith(Names.named("background")).toInstance(background);
+		
+		// backend-svnkit
+		bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
+		bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
 	}
 
 }

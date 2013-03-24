@@ -3,6 +3,7 @@ package se.repos.indexing;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,8 +37,8 @@ public class ReposIndexingImpl implements ReposIndexing {
 	private Map<CmsRepository, RepoRevision> running = new HashMap<CmsRepository, RepoRevision>();
 	private Map<CmsRepository, RepoRevision> completed = new HashMap<CmsRepository, RepoRevision>();
 
-	private Iterable<IndexingItemHandler> itemSync;
-	private Iterable<IndexingItemHandler> itemAsync;
+	private Iterable<IndexingItemHandler> itemBlocking = new LinkedList<IndexingItemHandler>();
+	private Iterable<IndexingItemHandler> itemBackground = new LinkedList<IndexingItemHandler>();
 	
 	@Inject
 	public void setSolrRepositem(@Named("repositem") SolrServer repositem) {
@@ -50,13 +51,13 @@ public class ReposIndexingImpl implements ReposIndexing {
 	}
 	
 	@Inject
-	public void setItemSync(@Named("sync") Iterable<IndexingItemHandler> handlersSync) {
-		this.itemSync = handlersSync;
+	public void setItemBlocking(@Named("blocking") Iterable<IndexingItemHandler> handlersSync) {
+		this.itemBlocking = handlersSync;
 	}
 	
 	@Inject
-	public void setItemAsync(Iterable<IndexingItemHandler> handlersAsync) {
-		this.itemAsync = handlersAsync;
+	public void setItemBackground(@Named("background") Iterable<IndexingItemHandler> handlersAsync) {
+		this.itemBackground = handlersAsync;
 	}
 	
 	/**

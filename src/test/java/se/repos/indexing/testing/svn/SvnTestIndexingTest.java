@@ -5,21 +5,20 @@ import static org.junit.Assert.*;
 import java.io.InputStream;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.junit.After;
 import org.junit.Test;
 import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc2.SvnCommit;
-import org.tmatesoft.svn.core.wc2.SvnCommitItem;
 import org.tmatesoft.svn.core.wc2.SvnCopySource;
 import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnRemoteCopy;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
-import se.repos.search.SearchReposItem;
-import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 
@@ -31,18 +30,21 @@ public class SvnTestIndexingTest {
 	}	
 	
 	@Test
-	public void testEnableCmsTestRepository() {
+	public void testEnableCmsTestRepository() throws SolrServerException {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
 		assertNotNull(dumpfile);
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository().load(dumpfile);
 		
 		// this should be all that is needed for the default setup
-		SearchReposItem search = SvnTestIndexing.getInstance().enable(repo);
-		
+		//SearchReposItem search = SvnTestIndexing.getInstance().enable(repo);
+		//Iterable<CmsItem> result = search.query(new SolrQuery("type:folder"));
 		// dump file contents should be indexed
-		Iterable<CmsItem> result = search.query(new SolrQuery("type:folder"));
-		assertEquals("should index initial contents", "dir", result.iterator().next().getId().getRelPath().getName());
+		//assertEquals("should index initial contents", "dir", result.iterator().next().getId().getRelPath().getName());
+		
+		SolrServer solr = SvnTestIndexing.getInstance().enable(repo);
+		QueryResponse result = solr.query(new SolrQuery("type:folder"));
+		assertEquals("should index initial contents", "dir", result.getResults().iterator().next().getFieldValue("pathname"));
 		
 		// first commit
 		SvnOperationFactory op = new SvnOperationFactory();
@@ -58,7 +60,8 @@ public class SvnTestIndexingTest {
 			throw new RuntimeException(e);
 		}
 		
-		
+		QueryResponse r2 = solr.query(new SolrQuery("path:/dir2"));
+		assertEquals("should have indexed upon commit and blocked until indexing is done", 1, r2.getResults().getNumFound());
 	}
 	
 	@Test
