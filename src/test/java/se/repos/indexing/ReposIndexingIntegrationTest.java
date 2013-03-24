@@ -18,6 +18,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -136,6 +137,39 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 			fail("Should attempt to index rev 2 because it is marked as in progress and the new indexing instance does not know the state of that operation so it has to assume that it was aborted");
 		} catch (Exception e) {
 			// expected, there is no revision 2
+		}
+	}
+	
+	@Test
+	public void testMarkItemHead() throws SolrServerException {
+		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
+				"se/repos/indexing/testrepo1r3.svndump");
+		assertNotNull(dumpfile);
+		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository().load(dumpfile);
+		
+		ReposIndexing indexing = getIndexing();
+		indexing.sync(repo, new RepoRevision(1, new Date(1)));
+		
+		SolrDocumentList r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
+		assertEquals(3, r1.size());
+		assertEquals("/dir", r1.get(0).getFieldValue("pathname"));
+		for (int i = 0; i < 3; i++) {
+			assertEquals(true, r1.get(i).getFieldValue("head"));
+		}
+		
+		indexing.sync(repo, new RepoRevision(2, new Date(2)));
+		SolrDocumentList r2r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
+		assertEquals("/dir " + r2r1.get(0), true, r2r1.get(0).getFieldValue("head"));
+		assertEquals("/dir/t2.txt " + r2r1.get(1), true, r2r1.get(1).getFieldValue("head"));
+		assertEquals("should have updated old /t1.txt" + r2r1.get(2), false, r2r1.get(2).getFieldValue("head"));
+		SolrDocumentList r2 = getSolr().query(new SolrQuery("id:*@2").setSort("path", ORDER.asc)).getResults();
+		assertEquals("next revision should be head, " + r2.get(0), true, r2.get(0).getFieldValue("head"));
+		
+		indexing.sync(repo, new RepoRevision(3, new Date(3)));
+		// everything from r1 should now have been replaced with later versions
+		SolrDocumentList r3r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
+		for (int i = 0; i < 3; i++) {
+			assertEquals("got " + r3r1.get(i), false, r3r1.get(i).getFieldValue("head"));
 		}
 	}
 

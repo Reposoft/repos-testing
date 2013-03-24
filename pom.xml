@@ -47,6 +47,11 @@
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
+			<artifactId>cms-indexing</artifactId>
+			<version>0.6-SNAPSHOT</version>
+		</dependency>		
+		<dependency>
+			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
 			<version>0.9-SNAPSHOT</version>
 			<scope>test</scope>

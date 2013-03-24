@@ -41,7 +41,7 @@
 		<!--
 		For items whose indexing progress is tracked, typically commits
 		-->
-		<field name="inprogress" type="boolean" indexed="true" stored="true" multiValued="false" />
+		<field name="complete" type="boolean" indexed="true" stored="true" multiValued="false" />
 
 		<!-- commit type fields -->
 		<field name="revauthor" type="string" indexed="true" stored="true" multiValued="false" />
