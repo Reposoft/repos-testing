@@ -85,6 +85,12 @@ public class ReposIndexingImpl implements ReposIndexing {
 		
 		 */
 		
+		/*
+		To facilitate fast indexing of HEAD-only content it would be useful to get repo "tree" with revisions from HEAD
+		as reference when reading changeset, and setting a flag if we know that an item is not current HEAD.
+		When sync is complete, that information should be removed and upcoming revisions should be handled as HEAD.
+		 */
+		
 		if (!scheduledHighest.containsKey(repository)) {
 			logger.info("Unknown index completeion status for repository {}. Polling.", repository);
 			RepoRevision c = getIndexedRevisionHighestCompleted(repository);
