@@ -1,4 +1,4 @@
-package se.repos.indexing;
+package se.repos.indexing.twophases;
 
 import static org.junit.Assert.*;
 
@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.testconfig.IndexingTestModule;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;

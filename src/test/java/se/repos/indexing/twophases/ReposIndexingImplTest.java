@@ -1,4 +1,4 @@
-package se.repos.indexing;
+package se.repos.indexing.twophases;
 
 import static org.junit.Assert.*;
 

@@ -7,8 +7,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
 import se.repos.indexing.ReposIndexing;
-import se.repos.indexing.ReposIndexingImpl;
 import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.simonsoft.cms.admin.CmsChangesetReader;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;

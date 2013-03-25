@@ -1,4 +1,4 @@
-package se.repos.indexing;
+package se.repos.indexing.twophases;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,10 +23,12 @@ import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.repos.indexing.CmsChangesetItemVisit;
+import se.repos.indexing.IndexConnectException;
+import se.repos.indexing.IndexWriteException;
+import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
-import se.repos.indexing.twophases.BlockingExecutor;
-import se.repos.indexing.twophases.IndexingDocIncrementalSolrj;
 import se.simonsoft.cms.admin.CmsChangesetReader;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
