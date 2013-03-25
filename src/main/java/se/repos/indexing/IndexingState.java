@@ -16,6 +16,16 @@ import se.simonsoft.cms.item.RepoRevision;
  */
 public interface IndexingState {
 
+	/**
+	 * @return true if index is complete, disregarding a single in-progress revision that is ==HEAD
+	 */
+	boolean isIndexComplete();
+	
+	/**
+	 * @return like {@link #isIndexComplete()} but requires only structure and item properties to be indexed
+	 */
+	boolean isIndexCompleteProps();
+	
 	void initializing(RepoRevision existingVerified, RepoRevision existingOverwriteFrom);
 
 	void syncRequest(RepoRevision revision);
