@@ -31,6 +31,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.events.change.CmsChangeset;
 import se.simonsoft.cms.item.events.change.CmsChangesetItem;
 import se.simonsoft.cms.item.inspection.CmsRepositoryInspection;
+import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 public class ReposIndexingImpl implements ReposIndexing {
@@ -40,8 +41,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 	private SolrServer repositem;
 	private CmsChangesetReader changesetReader;
 	
-	private Map<CmsRepository, RepoRevision> running = new HashMap<CmsRepository, RepoRevision>();
-	private Map<CmsRepository, RepoRevision> completed = new HashMap<CmsRepository, RepoRevision>();
+	private Map<CmsRepository, RepoRevision> scheduledHighest = new HashMap<CmsRepository, RepoRevision>();
 
 	private Iterable<IndexingItemHandler> itemBlocking = new LinkedList<IndexingItemHandler>();
 	private Iterable<IndexingItemHandler> itemBackground = new LinkedList<IndexingItemHandler>();
@@ -67,29 +67,56 @@ public class ReposIndexingImpl implements ReposIndexing {
 	}
 	
 	/**
-	 * Polls indexing status, forwards indexing task to {@link #sync(CmsRepositoryInspection, CmsChangesetReader, RepoRevision)}.
+	 * Polls indexing status, forwards indexing task to {@link #sync(CmsRepositoryInspection, CmsChangesetReader, Iterable)}
+	 * 
+	 * 
 	 */
 	@Override
 	public void sync(CmsRepository repository, RepoRevision revision) {
+		logger.info("Sync requested {} rev {}", repository, revision);
 		
-		if (!completed.containsKey(repository)) {
-			if (running.containsKey(repository)) {
-				throw new AssertionError("Indexing state is inconsistent. Could indicate concurrent indexing operations.");
-			}
+		/*
+		At large sync operations, do we run all blocking indexing first and then all background, or do we need more sophistication?
+		Do we completely rule out other ongoing tasks than those executed by this instance?
+		How do we handle indexing errors so we don't index that revision again and again?
+		
+		 */
+		
+		if (!scheduledHighest.containsKey(repository)) {
 			logger.info("Unknown index completeion status for repository {}. Polling.", repository);
 			RepoRevision c = getIndexedRevisionHighestCompleted(repository);
 			RepoRevision pl = getIndexedRevisionLowestStarted(repository);
 			RepoRevision ph = getIndexedRevisionHighestStarted(repository);
-			if (pl != null) {
-				logger.warn("Index contains unfinished revisions between {} and {} at first sync. Reindexing those.", pl, ph);
-			}
+			logger.info("Completed {}, progress from {} to {}", new Object[]{c, pl, ph});
+			// for now the simplest solution is to assume that all in-progress operations have actually completed
+			//if (pl != null) {
+			//	logger.warn("Index contains unfinished revisions between {} and {} at first sync. Reindexing those.", pl, ph);
+			//}
+			scheduledHighest.put(repository, ph);
 		}
 		
 		// running may be null if everything is completed
-		RepoRevision done = completed.get(repository);
-		RepoRevision runs = running.get(repository);
-		logger.info("Indexing {}, running {}, completed {}", new Object[] {revision, runs, done});
-		Iterable<RepoRevision> range = getIndexingRange(revision, runs, done);
+		List<RepoRevision> range = new LinkedList<RepoRevision>();
+		RepoRevision r = scheduledHighest.get(repository);
+		if (r == null) {
+			logger.debug("No revision status in index. Starting from 0.");
+			r = new RepoRevision(0, null);
+			range.add(r);
+		}
+		while(r.getNumber() < revision.getNumber() - 1) {
+			r = new RepoRevision(revision.getNumber() + 1, null);
+			range.add(r);
+		}
+		range.add(revision);
+		logger.debug("Index range: {}", range);
+		
+		// run
+		scheduledHighest.put(repository, revision);
+		if (repository instanceof CmsRepositoryInspection) {
+			sync((CmsRepositoryInspection) repository, changesetReader, range);
+		} else {
+			throw new AssertionError("Admin repository instance required for indexing. Got " + repository.getClass());
+		}
 		
 		// end of changeset indexing (i.e. after all background work too)
 
@@ -102,11 +129,6 @@ public class ReposIndexingImpl implements ReposIndexing {
 		}
 	}
 	
-	protected Iterable<RepoRevision> getIndexingRange(RepoRevision revision,
-			RepoRevision runs, RepoRevision done) {
-		return null;
-	}
-	
 	/**
 	 * Handles indexing status.
 	 * @param repository
@@ -115,9 +137,14 @@ public class ReposIndexingImpl implements ReposIndexing {
 	 */
 	void sync(CmsRepositoryInspection repository, CmsChangesetReader changesets, Iterable<RepoRevision> range) {
 		for (RepoRevision rev : range) {
-			running.put(repository, rev);
-			
-			
+			if (rev.getNumber() == 0) {
+				logger.debug("Revprops indexing for rev 0 not implemented"); // changeset reader couldn't handle 0
+				indexRevStart(repository, rev, null).run();
+				continue;
+			}
+			logger.debug("Reading revision {} from repository {}", rev, repository);
+			CmsChangeset changeset = changesets.read(repository, rev);
+			index(repository, changeset);
 		}
 	}
 	
@@ -145,7 +172,8 @@ public class ReposIndexingImpl implements ReposIndexing {
 			};
 			
 		}
-		
+		// end revision
+		onComplete.run();
 	}
 	
 	void indexItemVisit(CmsChangesetItemVisit itemVisit) {
@@ -179,6 +207,10 @@ public class ReposIndexingImpl implements ReposIndexing {
 	 */
 	Runnable indexRevStart(CmsRepository repository, CmsChangeset changeset) {
 		RepoRevision revision = changeset.getRevision();
+		return indexRevStart(repository, revision, null);
+	}
+	
+	Runnable indexRevStart(CmsRepository repository, RepoRevision revision, CmsItemProperties revprops) {
 		String id = getIdCommit(repository, revision);
 		SolrInputDocument docStart = new SolrInputDocument();
 		docStart.addField("id", id);
@@ -254,7 +286,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 	
 	@Override
 	public RepoRevision getRevComplete(CmsRepository repository) {
-		return completed.get(repository);
+		return scheduledHighest.get(repository); // not handling progress for now
 	}
 
 	@Override
