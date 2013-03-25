@@ -53,12 +53,48 @@
 		<field name="revt" type="date" indexed="true" stored="true" multiValued="false" />
 		
 		<!-- URL, URI (= logical id?), with rev for historical?, including commits? -->
+		<field name="url"       type="string" indexed="true" stored="true" multiValued="false"/>
+		<!-- URL at host, encoded (unlike pathfull if we keep that one) -->
+		<field name="urlpath"       type="string" indexed="true" stored="true" multiValued="false"/>
+		<!-- Logical ID -->
+		<field name="urlid"       type="string" indexed="true" stored="true" multiValued="false"/>
 		
-		<!-- items -->
-		<!-- fields currently in reposxml core -->
+		<!-- repository name, no slashes -->
+		<field name="repo"       type="string" indexed="true" stored="true" multiValued="false"/>
+		<!-- repository id including host -->
+		<field name="repoid"     type="string" indexed="true" stored="true" multiValued="false"/>
+		<!-- parent path -->
+		<field name="repoparent" type="string" indexed="true" stored="true" multiValued="false"/>
+		<!-- host and optional non-standard port -->
+		<field name="repohost"   type="string" indexed="true" stored="true" multiValued="false"/>
 		
+		<!-- path from repository root, starting with slash -->
+		<field name="path"     type="string" indexed="true"  stored="true"  multiValued="false"/>
+		<!-- file or folder name -->
+		<field name="pathname" type="string" indexed="true"  stored="false" multiValued="false"/>
+		<!-- extension, i.e. the part after the last dot -->
+		<field name="pathext"  type="string" indexed="true"  stored="false" multiValued="false"/>
+		<!-- path in repository up to parent (including for folders), no trailing slash -->
+		<field name="pathdir"  type="string" indexed="true"  stored="false" multiValued="false"/>
+		<!-- all parent folders -->
+		<field name="pathin"   type="string" indexed="true"  stored="false" multiValued="true"/>
+		
+		<!-- path from server root, URL-encoded?, url-at-host/urlpath? -->
+		<field name="pathfull"  type="string" indexed="true"  stored="false" multiValued="false"/>
+		<!-- all parent folders from server root -->
+		<field name="pathfullin"   type="string" indexed="true"  stored="false" multiValued="true"/>
+
 		<!-- classifies item as belonging to 1+ areas of the file hirearchy, such as "trunk"/"branch"/"tag"/"release"/"translation"/"template" -->
-		<field name="patharea" type="string" indexed="true" stored="true" multiValued="true" /> 		
+		<field name="patharea" type="string" indexed="true" stored="true" multiValued="true" />
+		
+		<!-- From fulltext extraction -->
+		
+		<!-- References, unresolved, including external -->
+		<field name="ref" type="string" indexed="true" stored="true" multiValued="true"/>
+		<!-- References, resolved to "url" field values, excluding revisions? -->
+		<field name="refurl" type="string" indexed="true" stored="true" multiValued="true"/>
+		<!-- References, resolved to "id" field values, internal only, with revisions? -->
+		<field name="refid" type="string" indexed="true" stored="true" multiValued="true"/>
 		
 	</fields>
 
