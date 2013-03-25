@@ -41,6 +41,9 @@ public class ReposIndexingImpl implements ReposIndexing {
 	private SolrServer repositem;
 	private CmsChangesetReader changesetReader;
 	
+	// TODO this service should be per-repository to allow different indexers
+	// but for now it can be both, as the only extra complexity is handling in memory the latest revision indexed
+	
 	private Map<CmsRepository, RepoRevision> scheduledHighest = new HashMap<CmsRepository, RepoRevision>();
 
 	private Iterable<IndexingItemHandler> itemBlocking = new LinkedList<IndexingItemHandler>();
@@ -158,6 +161,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// we may want to extract an item visitor pattern from indexing to generic hook processing
 		List<CmsChangesetItem> items = changeset.getItems();
 		for (final CmsChangesetItem item : items) {
+			logger.debug("Indexing item {}", item);
 			// TODO buffer, chose strategy depending on file size
 			CmsChangesetItemVisit visit = new CmsChangesetItemVisit() {
 				@Override
