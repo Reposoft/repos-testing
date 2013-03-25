@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.indexing.twophases.BlockingExecutor;
+import se.repos.indexing.twophases.IndexingDocIncrementalSolrj;
 import se.simonsoft.cms.admin.CmsChangesetReader;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
@@ -67,6 +70,19 @@ public class ReposIndexingImpl implements ReposIndexing {
 	@Inject
 	public void setItemBackground(@Named("background") Iterable<IndexingItemHandler> handlersAsync) {
 		this.itemBackground = handlersAsync;
+	}
+
+	protected Executor getExecutorBlocking() {
+		return new BlockingExecutor();
+	}	
+	
+	/**
+	 * For now we run everything as blocking, to simplify things.
+	 * @param handler
+	 * @return
+	 */
+	protected Executor getExecutorBackground() {
+		return new BlockingExecutor();
 	}
 	
 	/**
@@ -168,19 +184,13 @@ public class ReposIndexingImpl implements ReposIndexing {
 		List<CmsChangesetItem> items = changeset.getItems();
 		for (final CmsChangesetItem item : items) {
 			logger.debug("Indexing item {}", item);
-			// TODO buffer, chose strategy depending on file size
-			CmsChangesetItemVisit visit = new CmsChangesetItemVisit() {
-				@Override
-				public CmsChangesetItem getItem() {
-					return item;
-				}
-				@Override
-				public InputStream getContents() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-			};
+			IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
+			Executor blocking = getExecutorBlocking();
+			for (IndexingItemHandler handler : itemBlocking) {
+				
+			}
 			
+			// TODO handle contents, buffer, chose strategy depending on file size
 		}
 		// end revision
 		onComplete.run();

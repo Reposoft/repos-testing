@@ -1,6 +1,6 @@
 package se.repos.indexing;
 
-public interface IndexingDocIncremental {
+public interface IndexingDocIncremental extends IndexingDoc {
 
 	/**
 	 * Activates the "partial update" mode for all subsequent calls to {@link #addField(String, Object)} and {@link #setField(String, Object)},

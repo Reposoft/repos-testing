@@ -6,6 +6,8 @@ import se.repos.indexing.IndexingDoc;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.events.change.CmsChangesetItem;
+import se.simonsoft.cms.item.properties.CmsItemProperties;
 
 public interface IndexingItemProgress {
 
@@ -21,7 +23,12 @@ public interface IndexingItemProgress {
 	/**
 	 * @return the item that is indexed, with commit revision being the revision that is currently indexed
 	 */
-	CmsItem getItem();
+	CmsChangesetItem getItem();
+	
+	/**
+	 * @return properties of the cms item
+	 */
+	CmsItemProperties getProperties();
 	
 	/**
 	 * Called by indexers who need to read contents.

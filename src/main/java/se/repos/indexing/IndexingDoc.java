@@ -1,5 +1,7 @@
 package se.repos.indexing;
 
+import java.util.Collection;
+
 public interface IndexingDoc {
 
 	/**
@@ -11,6 +13,16 @@ public interface IndexingDoc {
 	
 	public void setField(String name, Object value);
 	
-	public Object getFieldValue(String name);	
+	public Object getFieldValue(String name);
+
+	public Collection<Object> getFieldValues(String name);
+	
+	public boolean containsKey(String fieldName);
+	
+	/**
+	 * Useful for reusing fields in a different core.
+	 * @return
+	 */
+	public IndexingDoc deepCopy();
 	
 }
