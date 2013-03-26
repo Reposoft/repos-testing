@@ -1,12 +1,12 @@
 package se.repos.indexing.twophases;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
@@ -15,12 +15,12 @@ import se.repos.indexing.IndexingDoc;
 import se.repos.indexing.IndexingDocIncremental;
 
 public class IndexingDocIncrementalSolrj implements
-		IndexingDocIncremental {
+		IndexingDocIncremental, Serializable {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private boolean update = false;
-	private List<String> fieldsUpdated = new LinkedList<String>();
+	private Set<String> fieldsUpdated = new HashSet<String>();
 
 	private SolrInputDocument doc;
 	
@@ -44,7 +44,7 @@ public class IndexingDocIncrementalSolrj implements
 		throw new UnsupportedOperationException("not implemented");
 	}
 	
-	protected SolrInputDocument getDoc() {
+	protected SolrInputDocument getSolrDoc() {
 		if (!update) {
 			return doc;
 		}
@@ -68,11 +68,6 @@ public class IndexingDocIncrementalSolrj implements
 	}
 
 	@Override
-	public void addField(String name, Object value) {
-		doc.addField(name, value);
-	}
-
-	@Override
 	public void setField(String name, Object value) {
 		if (update) {
 			value = new PartialUpdateVal(value);
@@ -80,6 +75,15 @@ public class IndexingDocIncrementalSolrj implements
 		}
 		doc.setField(name, value);
 	}
+	
+	@Override
+	public void addField(String name, Object value) {
+		if (update) {
+			value = new PartialUpdateAdd(value);
+			fieldsUpdated.add(name);
+		}
+		doc.addField(name, value);
+	}	
 
 	@Override
 	public Object getFieldValue(String name) {
@@ -120,7 +124,11 @@ public class IndexingDocIncrementalSolrj implements
 	}
 	
 	private class PartialUpdateAdd extends HashMap<String, Object> {
-		// TODO
+		private static final long serialVersionUID = 1L;
+		private PartialUpdateAdd(Object fieldValue) {
+			super(1);
+			put("add", fieldValue);
+		}
 	}
 	 
 	

@@ -32,14 +32,14 @@ public class IndexingDocIncrementalSolrjTest {
 		doc.setField("fb", false);
 		assertEquals("field value should still be retrievable in normal form after update mode is switched on, for use from other indexers",
 				false, doc.getFieldValue("fb"));
-		Object fb = doc.getDoc().getFieldValue("fb");
+		Object fb = doc.getSolrDoc().getFieldValue("fb");
 		assertTrue("In updated mode new fields should use 'set' syntax, got " + fb.getClass(), fb instanceof Map);
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		Map<String, Object> fbset = (Map) fb;
 		assertEquals("solrj partial update syntax", 1, fbset.size());
 		assertEquals("solrj partial update syntax", "set", fbset.keySet().iterator().next());
 		assertEquals(false, fbset.get("set"));
-		SolrInputDocument updateDoc = doc.getDoc();
+		SolrInputDocument updateDoc = doc.getSolrDoc();
 		assertTrue("solr doc should contain updated fields", updateDoc.containsKey("fb"));
 		assertFalse("after update the solr doc should not contain unchanged values", updateDoc.containsKey("f1"));
 		assertEquals("doc should always contain id", "test@1", updateDoc.getFieldValue("id"));
@@ -51,10 +51,19 @@ public class IndexingDocIncrementalSolrjTest {
 			// expected
 		}
 		doc.setField("fx", "new");
-		assertTrue("new fields since update mode true was set should go into next solr doc", doc.getDoc().containsKey("fx"));
-		// TODO assertEquals("fields that did not exist before, should they get the update syntax?", "new", doc.getFieldValue("fx"));		
+		assertTrue("new fields since update mode true was set should go into next solr doc", doc.getSolrDoc().containsKey("fx"));
+		// TODO assertEquals("fields that do not exist in solr, should they get the update syntax?", "new", doc.getFieldValue("fx"));		
 		doc.addField("f1", 4L);
-		fail("TODO implement add syntax, change updateFields to Set");
+		// TODO Collection<Object> f1u = doc.getFieldValues("f1");
+		//assertTrue("Should have the value from before update", f1u.contains(3L));
+		//assertTrue("Should have the value from after update", f1u.contains(4L));
+		Collection<Object> f1solr = doc.getSolrDoc().getFieldValues("f1");
+		assertEquals("Solr doc should only have the value from after update", 1, f1solr.size());
+		assertTrue("The value should be a partial update", f1solr.iterator().next() instanceof Map);
+		@SuppressWarnings("rawtypes")
+		Map f1update = (Map) f1solr.iterator().next();
+		assertEquals(4L, f1update.values().iterator().next());
+		assertEquals("Solr add syntax", "add", f1update.keySet().iterator().next());
 	}
 
 }
