@@ -74,6 +74,8 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		SvnTestSetup.getInstance().tearDown();
 		super.tearDown();
 		// tests have different repositories so let's see if they can use the same solr instance //solrTestServer = null;
+		// clear data from this test
+		getSolr().deleteByQuery("*:*");
 	}
 	
 	/**

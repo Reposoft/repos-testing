@@ -29,6 +29,7 @@ import se.repos.indexing.IndexWriteException;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.indexing.twophases.IndexingItemProgressPhases.Phase;
 import se.simonsoft.cms.admin.CmsChangesetReader;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
@@ -187,12 +188,21 @@ public class ReposIndexingImpl implements ReposIndexing {
 		for (final CmsChangesetItem item : items) {
 			logger.debug("Indexing item {}", item);
 			IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
+			// TODO handle contents, buffer, chose strategy depending on file size
+			IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, changeset.getRevision(), item, doc);
 			Executor blocking = getExecutorBlocking();
 			for (IndexingItemHandler handler : itemBlocking) {
-				
+				Runnable r = new IndexingItemHandlerRunnable(handler, progress);
+				blocking.execute(r);
 			}
-			
-			// TODO handle contents, buffer, chose strategy depending on file size
+			// TODO send to Solr here
+			progress.setPhase(Phase.update);
+			for (IndexingItemHandler handler : itemBackground) {
+				// for simplicity, continue using the same executor service
+				// we need status reporting before we start fiddling with background
+				Runnable r = new IndexingItemHandlerRunnable(handler, progress);
+				blocking.execute(r);				
+			}
 		}
 		// end revision
 		onComplete.run();
