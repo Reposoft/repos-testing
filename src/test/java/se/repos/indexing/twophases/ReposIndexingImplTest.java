@@ -21,8 +21,8 @@ public class ReposIndexingImplTest {
 		// always index hostname, useful for resolving URLs
 		// don't do a root marker etc, there'll be repo fileds for parent, name etc
 		// use numeric revision if available, shorter and better uniqueness
-		assertEquals("host.name/svn/repo/dir@123", impl.getId(repo, rev, new CmsItemPath("/dir")));
-		assertEquals("repo root", "host.name/svn/repo@123", impl.getId(repo, rev, null));
+		// TODO move to IdStrategy impl assertEquals("host.name/svn/repo/dir@123", impl.getId(repo, rev, new CmsItemPath("/dir")));
+		// TODO move to IdStrategy impl assertEquals("repo root", "host.name/svn/repo@123", impl.getId(repo, rev, null));
 		assertEquals("commit ids should not be confused with root items", "host.name/svn/repo#123", impl.getIdCommit(repo, rev));
 		assertEquals("repository ids are not used directly but useful for query on commit status", "host.name/svn/repo#", impl.getIdRepository(repo));
 	}

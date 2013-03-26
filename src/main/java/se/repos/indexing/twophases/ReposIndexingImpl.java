@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,13 +30,15 @@ import se.repos.indexing.IndexWriteException;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.indexing.item.ItemContentsBuffer;
+import se.repos.indexing.item.ItemPropertiesBufferStrategy;
 import se.repos.indexing.twophases.IndexingItemProgressPhases.Phase;
-import se.simonsoft.cms.admin.CmsChangesetReader;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.events.change.CmsChangeset;
 import se.simonsoft.cms.item.events.change.CmsChangesetItem;
+import se.simonsoft.cms.item.inspection.CmsChangesetReader;
 import se.simonsoft.cms.item.inspection.CmsRepositoryInspection;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -182,46 +185,72 @@ public class ReposIndexingImpl implements ReposIndexing {
 	 * @param changeset
 	 */
 	void index(CmsRepository repository, CmsChangeset changeset) {
+		logger.info("Indexing revision {} with blocking handlers {} and background handlers {}", new Object[]{changeset.getRevision(), itemBlocking, itemBackground});
 		Runnable onComplete = indexRevStart(repository, changeset);
+		
+		// TODO update existing docs affected by changeset to head=false,
+		//  unless in HEAD-referenced changeset mode (typically reindex) where docs get head=false at first indexing
+		
 		// we may want to extract an item visitor pattern from indexing to generic hook processing
 		List<CmsChangesetItem> items = changeset.getItems();
 		for (final CmsChangesetItem item : items) {
 			logger.debug("Indexing item {}", item);
-			IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
-			// TODO handle contents, buffer, chose strategy depending on file size
-			IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, changeset.getRevision(), item, doc);
-			Executor blocking = getExecutorBlocking();
-			for (IndexingItemHandler handler : itemBlocking) {
-				Runnable r = new IndexingItemHandlerRunnable(handler, progress);
-				blocking.execute(r);
-			}
-			// TODO send to Solr here
-			progress.setPhase(Phase.update);
-			for (IndexingItemHandler handler : itemBackground) {
-				// for simplicity, continue using the same executor service
-				// we need status reporting before we start fiddling with background
-				Runnable r = new IndexingItemHandlerRunnable(handler, progress);
-				blocking.execute(r);				
-			}
+			indexItemVisit(repository, changeset.getRevision(), item);
+			
 		}
-		// end revision
+		// TODO as long as our only executor is #getExecutorBlocking() we can run the end handler here
+		// when we have background we need to run it at the end of each changeset, after all items have completed in background
+		// This means we need to pass the executors to the item visit above
 		onComplete.run();
 	}
-	
+
+	/**
+	 * Item Visit is the future event handling concept for single items.
+	 * Needs either access to an "inspection" backed CmsItem,
+	 * with the drawback that it provides contents as OutputStream,
+	 * or to {@link CmsChangesetItem}, item properties buffer {@link CmsItemProperties}, {@link ItemContentsBuffer}.
+	 */
 	void indexItemVisit(CmsChangesetItemVisit itemVisit) {
-		
-	}
-	
-	void indexItemSync() {
-		
-	}
-	
-	void indexItemBackground() {
-		
 	}
 	
 	/**
-	 * Index only revprops and only for a single revision, helper to avoid reindex after revprops.
+	 * Alternative from our local changeset iteration.
+	 * @param progress
+	 */
+	private void indexItemVisit(CmsRepository repository, RepoRevision revision, CmsChangesetItem item) {
+		IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
+		// TODO handle contents, buffer, chose strategy depending on file size
+		IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, revision, item, doc);	
+		
+		Executor blocking = getExecutorBlocking();
+		indexItemProcess(blocking, progress, itemBlocking);
+		solrAdd(doc.getSolrDoc());
+		
+		progress.setPhase(Phase.update);
+		// for simplicity, continue using the same executor service
+		// we need status reporting before we start fiddling with background
+		// Note that onComplete needs to run after each changeset if we start running in background
+		// This method should probably move back to index
+		indexItemProcess(blocking, progress, itemBackground);
+		solrAdd(doc.getSolrDoc());
+		// TODO run the end handler after all items
+	}
+	
+	/**
+	 * Runs all indexing handlers in a phase using the same executor service.
+	 * @param executor {@link ExecutorService}
+	 * @param progress 
+	 * @param handler
+	 */
+	void indexItemProcess(Executor executor, IndexingItemProgress progress, Iterable<IndexingItemHandler> handlers) {
+		for (IndexingItemHandler handler : handlers) {
+			Runnable r = new IndexingItemHandlerRunnable(handler, progress);
+			executor.execute(r);
+		}		
+	}
+	
+	/**
+	 * Index only revprops and only for a single revision; helper to avoid reindex after revprops.
 	 * @param repository
 	 * @param changeset
 	 */
@@ -249,14 +278,18 @@ public class ReposIndexingImpl implements ReposIndexing {
 		docStart.addField("type", "commit");
 		docStart.addField("rev", getIdRevision(revision));
 		docStart.addField("complete", false);
+		solrAdd(docStart);
+		return new RunRevComplete(id);
+	}
+
+	protected void solrAdd(SolrInputDocument doc) {
 		try {
-			repositem.add(docStart);
+			repositem.add(doc);
 		} catch (SolrServerException e) {
 			throw new IndexWriteException(e);
 		} catch (IOException e) {
 			throw new IndexConnectException(e);
 		}
-		return new RunRevComplete(id);
 	}
 	
 	protected String escape(String fieldValue) {
@@ -300,9 +333,11 @@ public class ReposIndexingImpl implements ReposIndexing {
 		return new RepoRevision(rev, revt);
 	}
 	
+	/* moved to ItemPathinfo
 	String getId(CmsRepository repository, RepoRevision revision, CmsItemPath path) {
 		return repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + getIdRevision(revision); 
 	}
+	*/
 
 	String getIdRepository(CmsRepository repository) {
 		return repository.getHost() + repository.getUrlAtHost() + "#";
@@ -345,27 +380,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 			SolrInputDocument docComplete = new SolrInputDocument();
 			docComplete.addField("id", id);
 			docComplete.setField("complete", partialUpdateToTrue);
-			try {
-				repositem.add(docComplete);
-			} catch (SolrServerException e) {
-				throw new RuntimeException("error not handled", e);
-			} catch (IOException e) {
-				throw new RuntimeException("error not handled", e);
-			}
-		}
-		
-	}
-	
-	class RunBackgroundIndexing implements Runnable {
-
-		public RunBackgroundIndexing(Iterable<IndexingItemHandler> indexers, IndexingItemProgress item) {
-			
-		}
-		
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			
+			solrAdd(docComplete);
 		}
 		
 	}

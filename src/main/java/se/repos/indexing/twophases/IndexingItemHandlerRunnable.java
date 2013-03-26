@@ -1,14 +1,15 @@
 package se.repos.indexing.twophases;
 
 import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.indexing.item.IndexingItemProgress;
 
 public class IndexingItemHandlerRunnable implements Runnable {
 
 	private IndexingItemHandler handler;
-	private IndexingItemProgressPhases progress;
+	private IndexingItemProgress progress;
 
 	public IndexingItemHandlerRunnable(IndexingItemHandler handler,
-			IndexingItemProgressPhases progress) {
+			IndexingItemProgress progress) {
 		this.handler = handler;
 		this.progress = progress;
 	}
