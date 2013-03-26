@@ -17,9 +17,11 @@ public class ItemPathinfo implements IndexingItemHandler {
 	@Override
 	public void handle(IndexingItemProgress progress) {
 		CmsChangesetItem item = progress.getItem();
-		IndexingDoc fields = progress.getFields();
+		IndexingDoc d = progress.getFields();
 		String id = getId(progress.getRepository(), progress.getRevision(), item.getPath());
-		fields.setField("id", id);
+		d.setField("id", id);
+		d.setField("path", item.getPath().toString());
+		d.setField("pathname", item.getPath().getName());
 	}
 
 	@Override
