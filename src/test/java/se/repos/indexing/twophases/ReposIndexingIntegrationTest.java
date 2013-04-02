@@ -18,6 +18,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.After;
@@ -73,11 +74,28 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 	public void tearDown() throws Exception {
 		SvnTestSetup.getInstance().tearDown();
 		super.tearDown();
+		// save solr contents
+		printHits(new SolrQuery("*:*"));
 		// tests have different repositories so let's see if they can use the same solr instance //solrTestServer = null;
 		// clear data from this test
 		getSolr().deleteByQuery("*:*");
 	}
 	
+	private void printHits(SolrQuery q) throws SolrServerException {
+		System.out.println("--- solr contents " + q.toString() + " ---");
+		SolrDocumentList results = getSolr().query(q).getResults();
+		if (results.size() == 0) {
+			System.out.println("empty");
+		}
+		for (SolrDocument d : results) {
+			for (String f : d.getFieldNames()) {
+				String v = "" + d.get(f);
+				System.out.print(", " + f + ": " + v);
+			}
+			System.out.println("");
+		}
+	}
+
 	/**
 	 * @return instance for injection when integration testing our logic with solr, for index testing we do fine with SolrTestCaseJ4 helper methods
 	 */
