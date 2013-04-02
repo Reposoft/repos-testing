@@ -68,6 +68,11 @@
 		<!-- host and optional non-standard port -->
 		<field name="repohost"   type="string" indexed="true" stored="true" multiValued="false"/>
 		
+		<!-- item contents stat in this revision, A/M/D or empty -->
+		<field name="pathstat" type="string" indexed="true"  stored="true"  multiValued="false"/>
+		<!-- item properties stat in this revision, M or empty -->
+		<field name="pathstatprop" type="string" indexed="true"  stored="true"  multiValued="false"/>
+		
 		<!-- path from repository root, starting with slash -->
 		<field name="path"     type="string" indexed="true"  stored="true"  multiValued="false"/>
 		<!-- file or folder name -->
@@ -84,14 +89,14 @@
 		<!-- all parent folders from server root -->
 		<field name="pathfullin"   type="string" indexed="true"  stored="false" multiValued="true"/>
 
-		<!-- classifies item as belonging to 1+ areas of the file hirearchy, such as "trunk"/"branch"/"tag"/"release"/"translation"/"template" -->
+		<!-- classifies item as belonging to 1+ areas of the file hierarchy, such as "trunk"/"branch"/"tag"/"release"/"translation"/"template" -->
 		<field name="patharea" type="string" indexed="true" stored="true" multiValued="true" />
 		
 		<!-- From fulltext extraction -->
 		
 		<!-- References, unresolved, including external -->
 		<field name="ref" type="string" indexed="true" stored="true" multiValued="true"/>
-		<!-- References, resolved to "url" field values, excluding revisions? -->
+		<!-- References, resolved to "url" field values, excluding query string and fragments, excluding revisions? -->
 		<field name="refurl" type="string" indexed="true" stored="true" multiValued="true"/>
 		<!-- References, resolved to "id" field values, internal only, with revisions? -->
 		<field name="refid" type="string" indexed="true" stored="true" multiValued="true"/>
