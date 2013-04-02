@@ -57,8 +57,9 @@ public class IndexingDocIncrementalSolrjTest {
 		// TODO Collection<Object> f1u = doc.getFieldValues("f1");
 		//assertTrue("Should have the value from before update", f1u.contains(3L));
 		//assertTrue("Should have the value from after update", f1u.contains(4L));
+		assertTrue("Solr doc should keep the id field in update mode", doc.getSolrDoc().containsKey("id"));
 		Collection<Object> f1solr = doc.getSolrDoc().getFieldValues("f1");
-		assertEquals("Solr doc should only have the value from after update", 1, f1solr.size());
+		assertEquals("Solr multi value field should only have the value from after update", 1, f1solr.size());
 		assertTrue("The value should be a partial update", f1solr.iterator().next() instanceof Map);
 		@SuppressWarnings("rawtypes")
 		Map f1update = (Map) f1solr.iterator().next();
@@ -73,7 +74,7 @@ public class IndexingDocIncrementalSolrjTest {
 		doc.setField("x", "y");
 		doc.setUpdateMode(true);
 		SolrInputDocument nochanges = doc.getSolrDoc();
-		assertEquals("Can not have any fields if there are no updates because solr would overwrite the id", nochanges.size());
+		assertEquals("Can not have any fields if there are no updates because solr would overwrite the id", 0, nochanges.size());
 		assertTrue("Solr can't handle empty document so we should specifically identify this case", nochanges == IndexingDocIncrementalSolrj.UPDATE_MODE_NO_CHANGES);
 	}
 	

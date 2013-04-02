@@ -84,6 +84,9 @@ public class IndexingDocIncrementalSolrj implements
 	@Override
 	public void addField(String name, Object value) {
 		if (update) {
+			if (!fieldsUpdated.contains(name)) {
+				doc.remove(name);
+			}
 			value = new PartialUpdateAdd(value);
 			fieldsUpdated.add(name);
 		}
