@@ -175,7 +175,7 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		
 		SolrDocumentList r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
 		assertEquals(3, r1.size());
-		assertEquals("/dir", r1.get(0).getFieldValue("pathname"));
+		assertEquals("/dir", r1.get(0).getFieldValue("path"));
 		for (int i = 0; i < 3; i++) {
 			assertEquals(true, r1.get(i).getFieldValue("head"));
 		}

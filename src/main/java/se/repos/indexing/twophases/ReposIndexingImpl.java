@@ -202,6 +202,16 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// when we have background we need to run it at the end of each changeset, after all items have completed in background
 		// This means we need to pass the executors to the item visit above
 		onComplete.run();
+		
+		// guess we need different commit strategies for resync and post-commit indexing, but lets commit every revision for now
+		try {
+			repositem.commit();
+		} catch (SolrServerException e) {
+			throw new IndexWriteException(e);
+		} catch (IOException e) {
+			throw new IndexConnectException(e);
+		}
+		// guess we also need an optimize strategy
 	}
 
 	/**
@@ -232,7 +242,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// Note that onComplete needs to run after each changeset if we start running in background
 		// This method should probably move back to index
 		indexItemProcess(blocking, progress, itemBackground);
-		solrAdd(doc.getSolrDoc());
+		// TODO verify that this is a partial update doc //solrAdd(doc.getSolrDoc());
 		// TODO run the end handler after all items
 	}
 	
