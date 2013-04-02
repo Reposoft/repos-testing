@@ -242,7 +242,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// Note that onComplete needs to run after each changeset if we start running in background
 		// This method should probably move back to index
 		indexItemProcess(blocking, progress, itemBackground);
-		// TODO verify that this is a partial update doc //solrAdd(doc.getSolrDoc());
+		solrAdd(doc.getSolrDoc());
 		// TODO run the end handler after all items
 	}
 	
@@ -293,6 +293,10 @@ public class ReposIndexingImpl implements ReposIndexing {
 	}
 
 	protected void solrAdd(SolrInputDocument doc) {
+		if (doc == IndexingDocIncrementalSolrj.UPDATE_MODE_NO_CHANGES) {
+			logger.warn("Index add was attempted in update mode but no changes have been made");
+			return;
+		}
 		try {
 			repositem.add(doc);
 		} catch (SolrServerException e) {

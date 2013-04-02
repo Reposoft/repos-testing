@@ -66,4 +66,15 @@ public class IndexingDocIncrementalSolrjTest {
 		assertEquals("Solr add syntax", "add", f1update.keySet().iterator().next());
 	}
 
+	@Test
+	public void testUpdateModeNoChanges() {
+		IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
+		doc.setField("id", "test@2");
+		doc.setField("x", "y");
+		doc.setUpdateMode(true);
+		SolrInputDocument nochanges = doc.getSolrDoc();
+		assertEquals("Can not have any fields if there are no updates because solr would overwrite the id", nochanges.size());
+		assertTrue("Solr can't handle empty document so we should specifically identify this case", nochanges == IndexingDocIncrementalSolrj.UPDATE_MODE_NO_CHANGES);
+	}
+	
 }

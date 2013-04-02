@@ -16,8 +16,10 @@ import se.repos.indexing.IndexingDocIncremental;
 
 public class IndexingDocIncrementalSolrj implements
 		IndexingDocIncremental, Serializable {
-
+	
 	private static final long serialVersionUID = 1L;
+	
+	static final SolrInputDocument UPDATE_MODE_NO_CHANGES = new SolrInputDocument();
 	
 	private boolean update = false;
 	private Set<String> fieldsUpdated = new HashSet<String>();
@@ -47,6 +49,9 @@ public class IndexingDocIncrementalSolrj implements
 	protected SolrInputDocument getSolrDoc() {
 		if (!update) {
 			return doc;
+		}
+		if (fieldsUpdated.size() == 0) {
+			return UPDATE_MODE_NO_CHANGES;
 		}
 		SolrInputDocument d = doc.deepCopy();
 		for (String f : new ArrayList<String>(d.keySet())) {
