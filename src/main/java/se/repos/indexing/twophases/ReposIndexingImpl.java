@@ -232,6 +232,8 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// TODO handle contents, buffer, chose strategy depending on file size
 		IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, revision, item, doc);	
 		
+		doc.addField("head", true); // TODO adapt to cms cahngeset mode, in reindex (with HEAD reference) we could index as non-head immediately
+		
 		Executor blocking = getExecutorBlocking();
 		indexItemProcess(blocking, progress, itemBlocking);
 		solrAdd(doc.getSolrDoc());
