@@ -48,9 +48,12 @@
 		<field name="revcomment" type="string" indexed="true" stored="true" multiValued="false" />
 		<!-- revprops? -->
 		
-		<!-- commit and all items -->
+		<!-- revision for which the index doc is made -->
 		<field name="rev"  type="long" indexed="true" stored="true" multiValued="false" />
 		<field name="revt" type="date" indexed="true" stored="true" multiValued="false" />
+		<!-- commit revision - when the item was last modified (maybe at a different path), can be earlier than rev -->
+		<field name="revc"  type="long" indexed="true" stored="true" multiValued="false" />
+		<field name="revct" type="date" indexed="true" stored="true" multiValued="false" />
 		
 		<!-- URL, URI (= logical id?), with rev for historical?, including commits? -->
 		<field name="url"       type="string" indexed="true" stored="true" multiValued="false"/>

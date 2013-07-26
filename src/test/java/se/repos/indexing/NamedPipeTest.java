@@ -3,6 +3,7 @@ package se.repos.indexing;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -31,31 +32,7 @@ public class NamedPipeTest {
 	}
 	
 	// http://stackoverflow.com/questions/3809022/most-efficient-way-to-communicate-from-shell-script-running-java-app
-	// http://stackoverflow.com/questions/1666815/is-there-a-cross-platform-way-of-handling-named-pipes-in-java-or-should-i-write/1666925#1666925
-	@Test public void pipe() throws IOException, InterruptedException {
-	    Runtime.getRuntime().exec("mkfifo mypipe");
-
-	    final String[] read = new String[1];
-	    Thread t = new Thread() {
-	        @Override
-	        public void run() {
-	            try {
-	                BufferedReader r = new BufferedReader(new FileReader("mypipe"));
-	                read[0] = r.readLine();
-	            } catch (IOException e) {
-	            }
-	        }
-	    };
-	    t.start();
-
-	    FileWriter w = new FileWriter("mypipe");
-	    w.write("hello\n");
-	    w.flush();
-	    t.join();
-
-	    assertEquals("hello", read[0]);
-	}
-	
+	// http://stackoverflow.com/questions/1666815/is-there-a-cross-platform-way-of-handling-named-pipes-in-java-or-should-i-write/1666925#1666925	
 	@Test
 	public void testSvnHookToJava() {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
@@ -84,10 +61,11 @@ public class NamedPipeTest {
 		
 		try {
 			// hook that writes revision number to named pipe
-			FileWriter topipe = new FileWriter(postCommitSh);
-			topipe.write("#!/bin/sh\n");
-			topipe.write("echo $2 > " + pipe.getAbsolutePath() + "\n");
-			topipe.close();
+			FileWriter hookbridge = new FileWriter(postCommitSh);
+			hookbridge.write("#!/bin/sh\n");
+			hookbridge.write("echo $2 > " + pipe.getAbsolutePath() + "\n");
+			hookbridge.write("cat " + pipe.getAbsolutePath() + " >&2\n");			
+			hookbridge.close();
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
@@ -98,8 +76,10 @@ public class NamedPipeTest {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
+				System.out.println("Awaiting hook call at " + pipe);
+				BufferedReader r = null;
 				try {
-					BufferedReader r = new BufferedReader(new FileReader(pipe));
+					r = new BufferedReader(new FileReader(pipe));
 					// TODO make reading take 1000 ms so we can verify that the svn operation blocks
 					String echoed = r.readLine();
 					revs.add(Long.parseLong(echoed));
@@ -110,7 +90,38 @@ public class NamedPipeTest {
 					// TODO when to close reader during a test?
 				} catch (IOException e) {
 					e.printStackTrace();
+				} finally {
+					if (r != null) {
+						try {
+							r.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 				}
+				System.out.println("Now we do a quite slow indexing here and the commit should not return until we're done");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				System.out.println("Writing response to waiting (hopefully) hook");
+				BufferedWriter w = null;
+				try {
+					w = new BufferedWriter(new FileWriter(pipe));
+					w.write("Test indexing completed revision " + revs.get(revs.size()-1) + "\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (w != null) {
+						try {
+							w.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				System.out.println("Hook completed.");
 			}
 		};
 	    t.start();
@@ -126,6 +137,7 @@ public class NamedPipeTest {
 			fail("svnkit's api's make some very easy things very difficult. " + e.getMessage());
 		}
 		long timeBeforeCommit = System.currentTimeMillis();
+		System.out.println("Running commit to " + repo.getUrl());
 		SVNCommitInfo commitInfo = null;
 		try {
 			commitInfo = del.run();
@@ -145,7 +157,7 @@ public class NamedPipeTest {
 	    // verify that hook revision has been received
 	    assertEquals("Should have got the revision from the hook", 2, revs.get(0).intValue());
 	    assertTrue("The commit should block while the indexing operation runs, got " + timeCommit, timeCommit > 1000);
-	    assertTrue("The actual commont shouldn't take long, got " + timeCommit, timeCommit < 1500);
+	    assertTrue("The actual commont shouldn't take long, got " + timeCommit, timeCommit < 2000);
 	}
 	
 }
