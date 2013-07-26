@@ -42,7 +42,11 @@ public class SvnTestIndexingTest {
 		// dump file contents should be indexed
 		//assertEquals("should index initial contents", "dir", result.iterator().next().getId().getRelPath().getName());
 		
+		// TODO the API must support multiple cores, repositem and reposxml for example
+		// TODO join between them?
+		
 		SolrServer solr = SvnTestIndexing.getInstance().enable(repo);
+		
 		QueryResponse result = solr.query(new SolrQuery("type:folder"));
 		assertEquals("should index initial contents", "dir", result.getResults().iterator().next().getFieldValue("pathname"));
 		
