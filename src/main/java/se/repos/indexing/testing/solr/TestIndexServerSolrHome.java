@@ -9,6 +9,8 @@ import se.repos.indexing.testing.TestIndexOptions;
  */
 public abstract class TestIndexServerSolrHome {
 
+	private static final String HOMECONFIG = "se/repos/indexing/testing/solr/**";
+	
 	/**
 	 * Creates the cores and configuration needed for lookup.
 	 * @param options
