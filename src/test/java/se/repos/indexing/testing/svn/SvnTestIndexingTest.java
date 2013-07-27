@@ -2,8 +2,11 @@ package se.repos.indexing.testing.svn;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -30,6 +33,22 @@ public class SvnTestIndexingTest {
 	}	
 	
 	@Test
+	public void testExtract() throws IOException {
+		File test = null;
+		try {
+			test = File.createTempFile("test-" + this.getClass().getName(), "");
+			test.delete();
+			test.mkdir();
+			SvnTestIndexing.getInstance().extractRepositem(test);
+			for (String s : new String[]{"core.properties", "conf/schema.xml", "conf/solrconfig.xml"}) {
+				assertTrue("shold extract " + s, new File(test, s).exists());
+			}
+		} finally {
+			FileUtils.deleteDirectory(test);
+		}
+	}
+	
+	@Test
 	public void testEnableCmsTestRepository() throws SolrServerException {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
@@ -45,7 +64,7 @@ public class SvnTestIndexingTest {
 		// TODO the API must support multiple cores, repositem and reposxml for example
 		// TODO join between them?
 		
-		SolrServer solr = SvnTestIndexing.getInstance().enable(repo);
+		SolrServer solr = SvnTestIndexing.getInstance().enable(repo).getCore("repositem");
 		
 		QueryResponse result = solr.query(new SolrQuery("type:folder"));
 		assertEquals("should index initial contents", "dir", result.getResults().iterator().next().getFieldValue("pathname"));

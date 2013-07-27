@@ -89,7 +89,14 @@
 			<artifactId>sisu-guice</artifactId>
 			<version>3.1.5</version>
 			<scope>test</scope>
-		</dependency>	
+		</dependency>
+		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<!-- newer spring core jars are much bigger -->
+			<version>1.2.9</version>
+		</dependency>
 	</dependencies>
 	
 </project>
