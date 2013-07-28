@@ -3,11 +3,9 @@ package se.repos.indexing.twophases;
 import static org.junit.Assert.*;
 
 import java.util.Date;
-import java.util.Iterator;
 
 import org.junit.Test;
 
-import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 

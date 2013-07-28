@@ -1,7 +1,6 @@
 package se.repos.indexing.twophases;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -31,9 +30,7 @@ import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
 import se.repos.indexing.item.ItemContentsBuffer;
-import se.repos.indexing.item.ItemPropertiesBufferStrategy;
 import se.repos.indexing.twophases.IndexingItemProgressPhases.Phase;
-import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.events.change.CmsChangeset;
@@ -127,18 +124,16 @@ public class ReposIndexingImpl implements ReposIndexing {
 		}
 		
 		// running may be null if everything is completed
+		// TODO find the proper revision dates because those are indexed, needed in SvnTestIndexing too
 		List<RepoRevision> range = new LinkedList<RepoRevision>();
 		RepoRevision r = scheduledHighest.get(repository);
 		if (r == null) {
 			logger.debug("No revision status in index. Starting from 0.");
 			r = new RepoRevision(0, null);
-			range.add(r);
 		}
-		while(r.getNumber() < revision.getNumber() - 1) {
-			r = new RepoRevision(revision.getNumber() + 1, null);
-			range.add(r);
+		for (long i = r.getNumber(); i <= revision.getNumber(); i++) {
+			range.add(new RepoRevision(i, null));
 		}
-		range.add(revision);
 		logger.debug("Index range: {}", range);
 		
 		// run

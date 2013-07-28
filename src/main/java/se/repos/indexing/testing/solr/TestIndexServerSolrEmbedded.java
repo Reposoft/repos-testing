@@ -32,7 +32,7 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 	}
 
 	@Override
-	public SolrServer clearCore(String identifier) {
+	public SolrServer getCore(String identifier) {
 		SolrServer core = new EmbeddedSolrServer(container, identifier);
 		return core;
 	}

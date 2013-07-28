@@ -24,7 +24,7 @@ public class TestIndexServerSolrEmbeddedTest {
 		TestIndexOptions o = new TestIndexOptions().itemDefaults();
 		server.beforeTest(o);
 		// get a core for a test
-		SolrServer core = server.clearCore("repositem");
+		SolrServer core = server.getCore("repositem");
 		assertNotNull("Should configure a solr connection", core);
 		QueryResponse result = core.query(new SolrQuery("*:*"));
 		assertNotNull("Should run queyr");
@@ -36,6 +36,13 @@ public class TestIndexServerSolrEmbeddedTest {
 		assertEquals("Core should now have 1 doc", 1, core.query(new SolrQuery("*:*")).getResults().getNumFound());
 		// get a core again... TODO should be made empty
 		// TODO shouldn't clearing be the responsibility of SvnTestIndexing
+		try {
+			server.beforeTest(o);
+			// if re-initializing the server becomes a bottleneck the layer above could clear cores instead of running beforeTests, or change the definition of the function
+			fail("Should require destroy between tests so we don't get unintentional reuse of data");
+		} catch (IllegalStateException e) {
+			// expected
+		}
 		// after all tests
 		server.destroy();
 	}

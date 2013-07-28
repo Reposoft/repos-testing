@@ -11,18 +11,17 @@ import org.apache.solr.client.solrj.SolrServer;
 public interface TestIndexServer {
 
 	/**
-	 * Verify connection to server, if needed.
-	 * Also used to reset server between runs, if supported.
+	 * Makes server ready for tests, verifies that {@link #destroy()} is called between tests.
 	 */
 	void beforeTest(TestIndexOptions options);
 	
 	/**
-	 * Get a core for use in current test.
+	 * Get a core for use in current test, with existing content if reused since {@link #beforeTest(TestIndexOptions)}.
 	 * @param identifier To set up
 	 * @param identifies the resources needed, used to flag {@link TestIndexOptions#addCoreAlias(String, String)}
 	 * @return the core, ready for indexing
 	 */
-	SolrServer clearCore(String identifier);
+	SolrServer getCore(String identifier);
 	
 	void destroy();
 	

@@ -9,6 +9,7 @@ import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
+import se.repos.indexing.testing.TestIndexOptions;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
@@ -18,6 +19,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
+/**
+ * Indexing configuration for our tests in this module.
+ * See also the distributed standard config for unit tests, {@link TestIndexOptions#getIndexing()}.
+ */
 public class IndexingTestModule extends AbstractModule {
 
 	private SolrServer repositem;
