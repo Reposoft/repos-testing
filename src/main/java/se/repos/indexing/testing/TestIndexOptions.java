@@ -1,5 +1,7 @@
 package se.repos.indexing.testing;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,11 +10,11 @@ import se.repos.indexing.item.ItemPathinfo;
 
 public class TestIndexOptions {
 
-	List<IndexingItemHandler> handlers;
+	private List<IndexingItemHandler> handlers = new LinkedList<IndexingItemHandler>();
 
-	Map<String, String> cores;
+	private Map<String, String> cores = new HashMap<String, String>();
 	
-	Map<String, String> aliases;
+	private Map<String, String> aliases = new HashMap<String, String>();
 	
 	/**
 	 * Set up for basic "repositem" blocking indexing, i.e. structure but not contents.
@@ -45,19 +47,19 @@ public class TestIndexOptions {
 	 * @param actualCoreNameInSolr
 	 */
 	public void addCoreAlias(String identifier, String actualCoreNameInSolr) {
-		
+		aliases.put(identifier, actualCoreNameInSolr);
 	}
 	
 	public String getCoreAlias(String identifier) {
-		return null;
+		return aliases.get(identifier);
 	}
 	
 	public boolean hasCoreAliases() {
-		return false;
+		return aliases.size() > 0;
 	}
 	
 	public boolean hasCoreAlias(String identifier) {
-		return false;
+		return aliases.containsKey(identifier);
 	}
 	
 	public List<IndexingItemHandler> getHandlers() {
@@ -66,6 +68,6 @@ public class TestIndexOptions {
 
 	public Map<String, String> getCores() {
 		return cores;
-	}	
+	}
 	
 }

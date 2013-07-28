@@ -30,22 +30,6 @@ public class SvnTestIndexingTest {
 	@After
 	public void tearDown() {
 		SvnTestSetup.getInstance().tearDown();
-	}	
-	
-	@Test
-	public void testExtract() throws IOException {
-		File test = null;
-		try {
-			test = File.createTempFile("test-" + this.getClass().getName(), "");
-			test.delete();
-			test.mkdir();
-			SvnTestIndexing.getInstance().extractRepositem(test);
-			for (String s : new String[]{"core.properties", "conf/schema.xml", "conf/solrconfig.xml"}) {
-				assertTrue("shold extract " + s, new File(test, s).exists());
-			}
-		} finally {
-			FileUtils.deleteDirectory(test);
-		}
 	}
 	
 	@Test

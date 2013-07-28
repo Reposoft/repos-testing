@@ -1,26 +1,136 @@
 package se.repos.indexing.testing.solr;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import se.repos.indexing.testing.TestIndexOptions;
 
 /**
  * Base class for servers using a conventional Solr 4.3.1+ "solr.home" folder.
+ * Creates a config file and extracts the cores in a standard solr stucture.
  */
 public abstract class TestIndexServerSolrHome {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private static final String HOMECONFIG = "se/repos/indexing/testing/solr/**";
 	
 	/**
 	 * Creates the cores and configuration needed for lookup.
-	 * @param options
 	 * @return
 	 */
-	File setUpHome(TestIndexOptions options) {
+	File createHome() {
+		File instanceDir;
+		try {
+			instanceDir = File.createTempFile("testindexing-", ".dir");
+		} catch (IOException e) {
+			throw new RuntimeException("not handled", e);
+		}
+		instanceDir.delete();
+		instanceDir.mkdir();
+		logger.debug("Test server instance dir is {}", instanceDir);
+		extractResourceFolder(HOMECONFIG, instanceDir);
+		return instanceDir;
+	}
+	
+	File createHomeWithCores(TestIndexOptions options) {
 		if (options.hasCoreAliases()) {
 			throw new IllegalStateException("core aliases not supported, yet");
 		}
-		return null;
+		File instanceDir = createHome();
+		Map<String, String> cores = options.getCores();
+		for (String c : cores.keySet()) {
+			File coreFolder = new File(instanceDir, c);
+			if (coreFolder.exists()) {
+				throw new UnsupportedOperationException("Reuse of existing solr.home is not supported."); // Need to implement use of aliases
+			}
+			coreFolder.mkdir();
+			extractResourceFolder(cores.get(c), coreFolder);
+			logger.debug("Test server core {} added", c);
+		}
+		return instanceDir;
 	}
+	
+	void destroy(File instanceDir) {
+		try {
+			FileUtils.deleteDirectory(instanceDir);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * Copy recursively from classpath to filesystem.
+	 * @param pattern an ant pattern starting with a folder path relative to classpath root
+	 * @param destination existing and usually empty folder to extract to
+	 */
+	protected void extractResourceFolder(String pattern, File destination) {
+		int pathlen = pattern.indexOf('*');
+		String path = pattern.substring(0, pathlen > 0 ? pathlen : pattern.length());
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		Resource[] resources;
+		try {
+			resources = resolver.getResources("classpath*:" + pattern);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		SortedMap<String, Resource> extract = new TreeMap<String, Resource>();
+		for (Resource r : resources) {
+			String full = r.getDescription();
+			int relpos = full.indexOf(path);
+			if (relpos < 0) {
+				throw new IllegalStateException("Expected path not found in extracted resource " + r);
+			}
+			String rel = full.substring(relpos + path.length(), full.length() - 1);
+			extract.put(rel, r);
+		}
+		for (String rel : extract.keySet()) {
+			File outfile = new File(destination, rel);
+			InputStream in;
+			try {
+				in = extract.get(rel).getInputStream();
+			} catch (IOException e) {
+				if (e.getMessage().contains("(Is a directory")) {
+					outfile.mkdir();
+					continue;
+				}
+				throw new RuntimeException(e);
+			}
+			FileOutputStream out;
+			try {
+				out = new FileOutputStream(outfile);
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				IOUtils.copy(in, out);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				in.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				out.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}	
 	
 }
