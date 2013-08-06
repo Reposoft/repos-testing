@@ -1,7 +1,6 @@
 package se.repos.indexing.testing.solr;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServer;
@@ -43,15 +42,9 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 		instanceDir = null;
 	}
 	
-	@SuppressWarnings("deprecation") // let's just see if this configuration from the wiki works, at least until Solr 5.0
 	protected void createServer() {
-		File solrxml = new File(instanceDir, "solr.xml");
-		container = new CoreContainer();
-		try {
-			container.load(instanceDir.getAbsolutePath(), solrxml);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Server creation failed at " + instanceDir, e);
-		}
+		container = new CoreContainer(instanceDir.getAbsolutePath());
+		container.load();
 	}
 	
 	private void initExperiments() {
