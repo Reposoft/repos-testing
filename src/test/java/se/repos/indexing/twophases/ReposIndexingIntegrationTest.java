@@ -169,6 +169,7 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 				"se/repos/indexing/testrepo1r3.svndump");
 		assertNotNull(dumpfile);
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository().load(dumpfile);
+		repo.setKeep(true);
 		
 		ReposIndexing indexing = getIndexing();
 		indexing.sync(repo, new RepoRevision(1, new Date(1)));
@@ -191,9 +192,18 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		indexing.sync(repo, new RepoRevision(3, new Date(3)));
 		// everything from r1 should now have been replaced with later versions
 		SolrDocumentList r3r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
-		for (int i = 0; i < 3; i++) {
-			assertEquals("got " + r3r1.get(i), false, r3r1.get(i).getFieldValue("head"));
-		}
+		
+		assertEquals("/dir", r3r1.get(0).get("path"));
+		assertEquals("/dir/t2.txt", r3r1.get(1).get("path"));
+		assertEquals("/t1.txt", r3r1.get(2).get("path"));
+
+		assertEquals("Old file that hasn't been change should still be head", true, r3r1.get(1).getFieldValue("head"));
+		assertEquals("The file that was changed in r3 should now be marked as non-head", false, r3r1.get(2).getFieldValue("head"));
+		// TODO to assert on dir we need to first edit a file in it and verify it is still head (it should be, right?),
+		// then edit a property on it to check that it's marked not head
+		
+		// TODO test for gaps, moves etc
+		fail("Current solution is still fake, only works for previous revision");
 	}
 
 }

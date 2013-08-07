@@ -31,6 +31,7 @@ import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
 import se.repos.indexing.item.ItemContentsBuffer;
 import se.repos.indexing.twophases.IndexingItemProgressPhases.Phase;
+import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.events.change.CmsChangeset;
@@ -223,6 +224,8 @@ public class ReposIndexingImpl implements ReposIndexing {
 	 * @param progress
 	 */
 	private void indexItemVisit(CmsRepository repository, RepoRevision revision, CmsChangesetItem item) {
+		indexItemMarkPrevious(repository, revision, item);
+		
 		IndexingDocIncrementalSolrj doc = new IndexingDocIncrementalSolrj();
 		// TODO handle contents, buffer, chose strategy depending on file size
 		IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, revision, item, doc);	
@@ -241,6 +244,17 @@ public class ReposIndexingImpl implements ReposIndexing {
 		indexItemProcess(blocking, progress, itemBackground);
 		solrAdd(doc.getSolrDoc());
 		// TODO run the end handler after all items
+	}
+	
+	private void indexItemMarkPrevious(CmsRepository repository, RepoRevision revision, CmsChangesetItem item) {
+		CmsItemPath path = item.getPath();
+		// TODO this is just a test that we can update records, both path and revision may be different however
+		String query = repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + (revision.getNumber() - 1); // From ItemPathInfo
+		IndexingDocIncrementalSolrj mark = new IndexingDocIncrementalSolrj();
+		mark.addField("id", query);		
+		mark.setUpdateMode(true);
+		mark.setField("head", false);
+		solrAdd(mark.getSolrDoc());
 	}
 	
 	/**
