@@ -222,6 +222,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 	/**
 	 * Alternative from our local changeset iteration.
 	 * @param progress
+	 * 
 	 */
 	private void indexItemVisit(CmsRepository repository, RepoRevision revision, CmsChangesetItem item) {
 		indexItemMarkPrevious(repository, revision, item);
@@ -230,7 +231,8 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// TODO handle contents, buffer, chose strategy depending on file size
 		IndexingItemProgressPhases progress = new IndexingItemProgressPhases(repository, revision, item, doc);	
 		
-		doc.addField("head", true); // TODO adapt to cms cahngeset mode, in reindex (with HEAD reference) we could index as non-head immediately
+		// TODO with HEAD reference we could index as non-head immediately, see CmsChangesetReader#read(CmsRepositoryInspection, RepoRevision, RepoRevision) and CmsChangesetItem#isOverwritten()
+		doc.addField("head", item.isDelete() ? false : true);
 		
 		Executor blocking = getExecutorBlocking();
 		indexItemProcess(blocking, progress, itemBlocking);
@@ -242,14 +244,18 @@ public class ReposIndexingImpl implements ReposIndexing {
 		// Note that onComplete needs to run after each changeset if we start running in background
 		// This method should probably move back to index
 		indexItemProcess(blocking, progress, itemBackground);
-		solrAdd(doc.getSolrDoc());
+		if (doc.size() > 0) {
+			solrAdd(doc.getSolrDoc());
+		}
 		// TODO run the end handler after all items
 	}
 	
 	private void indexItemMarkPrevious(CmsRepository repository, RepoRevision revision, CmsChangesetItem item) {
+		if (item.isFolder()) {
+			logger.warn("Flagging !head on folder is unreliable, see issue in SvnlookItem");
+		}
 		CmsItemPath path = item.getPath();
-		// TODO this is just a test that we can update records, both path and revision may be different however
-		String query = repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + (revision.getNumber() - 1); // From ItemPathInfo
+		String query = repository.getHost() + repository.getUrlAtHost() + (path == null ? "" : path) + "@" + item.getRevisionObsoleted(); // From ItemPathInfo
 		IndexingDocIncrementalSolrj mark = new IndexingDocIncrementalSolrj();
 		mark.addField("id", query);		
 		mark.setUpdateMode(true);
@@ -304,8 +310,11 @@ public class ReposIndexingImpl implements ReposIndexing {
 	}
 
 	protected void solrAdd(SolrInputDocument doc) {
+		if (doc.size() == 0) {
+			throw new IllegalArgumentException("Detected attempt to index empty document");
+		}
 		if (doc == IndexingDocIncrementalSolrj.UPDATE_MODE_NO_CHANGES) {
-			logger.warn("Index add was attempted in update mode but no changes have been made");
+			logger.warn("Index add was attempted in update mode but no changes have been made, got fields {}", doc.getFieldNames());
 			return;
 		}
 		try {

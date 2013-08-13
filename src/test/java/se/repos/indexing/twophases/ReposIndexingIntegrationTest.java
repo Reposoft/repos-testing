@@ -1,15 +1,8 @@
 package se.repos.indexing.twophases;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.swing.SortOrder;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -169,7 +162,6 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 				"se/repos/indexing/testrepo1r3.svndump");
 		assertNotNull(dumpfile);
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository().load(dumpfile);
-		repo.setKeep(true);
 		
 		ReposIndexing indexing = getIndexing();
 		indexing.sync(repo, new RepoRevision(1, new Date(1)));
@@ -178,16 +170,16 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		assertEquals(3, r1.size());
 		assertEquals("/dir", r1.get(0).getFieldValue("path"));
 		for (int i = 0; i < 3; i++) {
-			assertEquals(true, r1.get(i).getFieldValue("head"));
+			assertEquals(true, r1.get(i).get("head"));
 		}
 		
 		indexing.sync(repo, new RepoRevision(2, new Date(2)));
 		SolrDocumentList r2r1 = getSolr().query(new SolrQuery("id:*@1").setSort("path", ORDER.asc)).getResults();
-		assertEquals("/dir " + r2r1.get(0), true, r2r1.get(0).getFieldValue("head"));
-		assertEquals("/dir/t2.txt " + r2r1.get(1), true, r2r1.get(1).getFieldValue("head"));
-		assertEquals("should have updated old /t1.txt" + r2r1.get(2), false, r2r1.get(2).getFieldValue("head"));
+		assertEquals("/dir " + r2r1.get(0), true, r2r1.get(0).get("head"));
+		assertEquals("/dir/t2.txt " + r2r1.get(1), true, r2r1.get(1).get("head"));
+		assertEquals("should have updated old /t1.txt" + r2r1.get(2), false, r2r1.get(2).get("head"));
 		SolrDocumentList r2 = getSolr().query(new SolrQuery("id:*@2").setSort("path", ORDER.asc)).getResults();
-		assertEquals("next revision should be head, " + r2.get(0), true, r2.get(0).getFieldValue("head"));
+		assertEquals("next revision should be head, " + r2.get(0), true, r2.get(0).get("head"));
 		
 		indexing.sync(repo, new RepoRevision(3, new Date(3)));
 		// everything from r1 should now have been replaced with later versions
@@ -196,14 +188,32 @@ public class ReposIndexingIntegrationTest extends SolrTestCaseJ4 {
 		assertEquals("/dir", r3r1.get(0).get("path"));
 		assertEquals("/dir/t2.txt", r3r1.get(1).get("path"));
 		assertEquals("/t1.txt", r3r1.get(2).get("path"));
+		assertEquals("Revision 1 had only these files, nothing else should have been indexed on rev 1 since then", 3, r3r1.size());
 
-		assertEquals("Old file that hasn't been change should still be head", true, r3r1.get(1).getFieldValue("head"));
-		assertEquals("The file that was changed in r3 should now be marked as non-head", false, r3r1.get(2).getFieldValue("head"));
-		// TODO to assert on dir we need to first edit a file in it and verify it is still head (it should be, right?),
-		// then edit a property on it to check that it's marked not head
+		assertEquals("Folder is deleted and thus no longer in head", false, r3r1.get(0).get("head"));
+		assertEquals("Old file that is now gone because of folder delete should not be head", false, r3r1.get(1).get("head"));
+		assertEquals("The file that was changed in r3 should now be marked as non-head", false, r3r1.get(2).get("head"));
 		
-		// TODO test for gaps, moves etc
-		fail("Current solution is still fake, only works for previous revision");
+		SolrDocumentList r3r2 = getSolr().query(new SolrQuery("id:*@2").setSort("path", ORDER.asc)).getResults();
+		assertEquals("There was only a file edit in rev 2", 1, r3r2.size());
+		assertEquals("/t1.txt", r3r2.get(0).get("path"));
+		assertEquals("Rev 2 is still HEAD for this file", true, r3r2.get(0).get("head"));
+		
+		SolrDocumentList r3r3 = getSolr().query(new SolrQuery("id:*@3").setSort("path", ORDER.asc)).getResults();
+		assertEquals("Deletions should be indexed so we know when an item disappeared", "/dir", r3r3.get(0).get("path"));
+		assertEquals("Deletions should always be !head", false, r3r3.get(0).get("head"));
+		assertEquals("Derived delete", "/dir/t2.txt", r3r3.get(1).get("path"));
+		assertEquals(false, r3r3.get(1).get("head"));
+		assertEquals("Folder copy", "/dir2", r3r3.get(2).get("path"));
+		assertEquals("This revision is HEAD", true, r3r3.get(2).get("head"));
+		assertEquals("Derived", "/dir2/t2.txt", r3r3.get(3).get("path"));
+		assertEquals(true, r3r3.get(3).get("head"));
+		
+		// TODO we could propedit on dir2 and check that rev 3 of it becomes !head
+		
+		// TODO if we now modify t2 then latest dir2 should still be head
+		
+		// TODO if we then delete dir2 in the next commit we can demonstrate the issue with marking folders as !head when files have changed in them; need for workaround
 	}
 
 }

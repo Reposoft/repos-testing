@@ -20,6 +20,11 @@ public interface IndexingDoc {
 	public boolean containsKey(String fieldName);
 	
 	/**
+	 * @return the number of fields
+	 */
+	public int size();
+	
+	/**
 	 * Useful for reusing fields in a different core.
 	 * @return
 	 */

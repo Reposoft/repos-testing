@@ -116,6 +116,14 @@ public class IndexingDocIncrementalSolrj implements
 	}
 	
 	@Override
+	public int size() {
+		if (update) {
+			return fieldsUpdated.size();
+		}
+		return doc.size();
+	}
+	
+	@Override
 	public IndexingDoc deepCopy() {
 		if (fieldsUpdated.size() > 0) {
 			throw new UnsupportedOperationException("Field clone not supported when there are field updates to " + fieldsUpdated);
