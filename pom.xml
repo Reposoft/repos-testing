@@ -90,6 +90,13 @@
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
 			<version>4.4.0</version>
+			<exclusions>
+				<!-- from hadoop dependency -->
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -107,7 +114,12 @@
 			<artifactId>spring-core</artifactId>
 			<!-- newer spring core jars are much bigger -->
 			<version>1.2.9</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.7.5</version>
+		</dependency>	
 	</dependencies>
 	
 </project>
