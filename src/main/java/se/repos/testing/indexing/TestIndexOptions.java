@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2004-2012 Repos Mjukvara AB
+ */
 package se.repos.testing.indexing;
 
 import java.util.HashMap;
@@ -16,7 +19,6 @@ import se.repos.indexing.item.ItemPathinfo;
 import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.svn.SvnTestIndexing;
-import se.repos.testing.indexing.testconfig.IndexingTestModule;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
@@ -92,7 +94,7 @@ public class TestIndexOptions {
 	 * 
 	 * Very geared towards {@link SvnTestIndexing}.
 	 * Subclasses could use a real injection module.
-	 * See {@link IndexingTestModule}.
+	 * See {@link se.repos.testing.indexing.testconfig.IndexingTestModule}.
 	 * 
 	 * @param repositem The fundamental core needed for indexing to run
 	 * @return configured indexing for current test backend
