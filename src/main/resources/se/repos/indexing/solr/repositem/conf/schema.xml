@@ -96,6 +96,7 @@
 		<field name="patharea" type="string" indexed="true" stored="true" multiValued="true" />
 		
 		<!-- From fulltext extraction -->
+		<field name="text" type="text_general" indexed="true" stored="false" multiValued="false" />
 		
 		<!-- References, unresolved, including external -->
 		<field name="ref" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -120,6 +121,26 @@
 		<fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0" />
 		<fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
 		<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+	
+		<!-- A general text field that has reasonable, generic cross-language defaults: 
+			it tokenizes with StandardTokenizer, removes stop words from case-insensitive 
+			"stopwords.txt" (empty by default), and down cases. At query time only, it 
+			also applies synonyms. -->
+		<fieldType name="text_general" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" /> -->
+				<filter class="solr.WordDelimiterFilterFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" /> -->
+				<!-- <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true" /> -->
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>	
 	</types>
 	
 </schema>
