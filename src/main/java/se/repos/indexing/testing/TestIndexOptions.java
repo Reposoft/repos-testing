@@ -15,8 +15,10 @@ import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
 import se.repos.indexing.testconfig.IndexingTestModule;
 import se.repos.indexing.testing.svn.SvnTestIndexing;
+import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
+import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
 
 public class TestIndexOptions {
@@ -103,11 +105,14 @@ public class TestIndexOptions {
 		//bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
 		CmsChangesetReaderSvnkitLook reader = new CmsChangesetReaderSvnkitLook();
 		reader.setSVNLookClientProvider(svnlook);
+		CmsContentsReaderSvnkitLook contents = new CmsContentsReaderSvnkitLook();
+		contents.setSVNLookClientProvider(svnlook);
 		// Indexing
 		ReposIndexingImpl impl = new ReposIndexingImpl();
 		impl.setCmsChangesetReader(reader);
 		impl.setItemBlocking(getHandlers());
 		impl.setSolrRepositem(repositem);
+		impl.setItemContentsBufferStrategy(new ItemContentsNocache().setCmsContentsReader(contents));
 		return impl;
 	}
 	

@@ -78,6 +78,7 @@ public class IndexingItemProgressPhases implements IndexingItemProgress {
 	@Override
 	public CmsItemProperties getProperties() {
 		if (properties == null) {
+			// TODO shouldn't this be up to the ItemPropertiesBufferStrategy, though the interface is unaware of phases?
 			throw new UnsupportedOperationException("indexing of properties is not supported in this phase");
 		}
 		return properties;
@@ -86,6 +87,7 @@ public class IndexingItemProgressPhases implements IndexingItemProgress {
 	@Override
 	public InputStream getContents() {
 		if (contents == null) {
+			// TODO shouldn't this be up to the ItemContentsBufferStrategy, though the interface is unaware of phases?
 			throw new UnsupportedOperationException("Item contents not available in this indexing phase");
 		}
 		return contents.getContents();

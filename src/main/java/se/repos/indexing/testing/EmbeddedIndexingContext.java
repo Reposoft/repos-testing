@@ -2,7 +2,8 @@ package se.repos.indexing.testing;
 
 /**
  * To avoid a runtime dependency on Guice in all modules that use this test framework
- * we hard code dependency injection for the blocking indexer needed in hooks. 
+ * we hard code dependency injection for the blocking indexer needed in hooks.
+ * @deprecated Currently done in IndexingOptions
  */
 public class EmbeddedIndexingContext {
 	
