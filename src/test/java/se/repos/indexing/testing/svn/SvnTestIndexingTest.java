@@ -40,7 +40,7 @@ public class SvnTestIndexingTest {
 	@After
 	public void tearDown() {
 		SvnTestSetup.getInstance().tearDown();
-		SvnTestIndexing.getInstance().tearDown(); // TODO make static?
+		SvnTestIndexing.getInstance().tearDown(); // TODO make static and set up + tear down only once?
 	}
 	
 	@Test

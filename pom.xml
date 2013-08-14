@@ -54,12 +54,6 @@
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-indexing</artifactId>
 			<version>0.6-SNAPSHOT</version>
-		</dependency>		
-		<dependency>
-			<groupId>se.simonsoft</groupId>
-			<artifactId>cms-backend-svnkit</artifactId>
-			<version>0.9-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
@@ -90,13 +84,30 @@
 			<version>3.1.5</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- All jars below are needed in runtime because the module includes a test framework -->
+		<!-- It looks like we should make the test framework a separate module -->
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-core</artifactId>
+			<version>4.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>se.simonsoft</groupId>
+			<artifactId>cms-backend-svnkit</artifactId>
+			<version>0.9-SNAPSHOT</version>
+		</dependency>		
 		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<!-- newer spring core jars are much bigger -->
 			<version>1.2.9</version>
-		</dependency>
+		</dependency>		
 	</dependencies>
 	
 </project>
