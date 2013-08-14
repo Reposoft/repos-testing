@@ -1,12 +1,12 @@
-package se.repos.indexing.testing;
+package se.repos.testing.indexing;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-
 import org.junit.Test;
 
 import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.testing.indexing.TestIndexOptions;
 
 public class TestIndexOptionsTest {
 

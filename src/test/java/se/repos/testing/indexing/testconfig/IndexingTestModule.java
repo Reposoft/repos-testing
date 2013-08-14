@@ -1,4 +1,4 @@
-package se.repos.indexing.testconfig;
+package se.repos.testing.indexing.testconfig;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,9 +10,9 @@ import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemContentsBufferStrategy;
 import se.repos.indexing.item.ItemPathinfo;
-import se.repos.indexing.testing.TestIndexOptions;
 import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ReposIndexingImpl;
+import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;

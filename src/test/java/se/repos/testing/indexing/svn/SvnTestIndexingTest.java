@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.svn;
+package se.repos.testing.indexing.svn;
 
 import static org.junit.Assert.*;
 
@@ -30,6 +30,7 @@ import org.tmatesoft.svn.core.wc2.SvnRemoteCopy;
 import org.tmatesoft.svn.core.wc2.SvnRemoteDelete;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
+import se.repos.testing.indexing.svn.SvnTestIndexing;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 

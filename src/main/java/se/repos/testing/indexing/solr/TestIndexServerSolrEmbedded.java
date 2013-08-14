@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.solr;
+package se.repos.testing.indexing.solr;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,8 +10,8 @@ import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 
-import se.repos.indexing.testing.TestIndexOptions;
-import se.repos.indexing.testing.TestIndexServer;
+import se.repos.testing.indexing.TestIndexOptions;
+import se.repos.testing.indexing.TestIndexServer;
 
 public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 		implements TestIndexServer {

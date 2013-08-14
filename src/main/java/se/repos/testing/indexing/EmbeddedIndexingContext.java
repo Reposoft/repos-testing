@@ -1,4 +1,4 @@
-package se.repos.indexing.testing;
+package se.repos.testing.indexing;
 
 /**
  * To avoid a runtime dependency on Guice in all modules that use this test framework

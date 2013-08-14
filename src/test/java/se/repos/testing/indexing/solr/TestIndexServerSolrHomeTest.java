@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.solr;
+package se.repos.testing.indexing.solr;
 
 import static org.junit.Assert.*;
 
@@ -8,7 +8,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import se.repos.indexing.testing.TestIndexOptions;
+import se.repos.testing.indexing.TestIndexOptions;
+import se.repos.testing.indexing.solr.TestIndexServerSolrHome;
 
 public class TestIndexServerSolrHomeTest {
 

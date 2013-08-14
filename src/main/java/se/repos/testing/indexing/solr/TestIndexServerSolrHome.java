@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.solr;
+package se.repos.testing.indexing.solr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import se.repos.indexing.testing.TestIndexOptions;
+import se.repos.testing.indexing.TestIndexOptions;
 
 /**
  * Base class for servers using a conventional Solr 4.3.1+ "solr.home" folder.

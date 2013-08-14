@@ -36,56 +36,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>se.repos</groupId>
-			<artifactId>repos-search</artifactId>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>repos-indexing</artifactId>
 			<version>1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>jsr311-api</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>se.simonsoft</groupId>
-			<artifactId>cms-item</artifactId>
-			<version>2.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>se.simonsoft</groupId>
-			<artifactId>cms-indexing</artifactId>
-			<version>0.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-testing</artifactId>
 			<version>0.9-SNAPSHOT</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-solrj</artifactId>
-			<version>4.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-test-framework</artifactId>
-			<version>4.4.0</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-log4j12</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.sonatype.sisu</groupId>
-			<artifactId>sisu-guice</artifactId>
-			<version>3.1.5</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- All jars below are needed in runtime because the module includes a test framework -->
-		<!-- It looks like we should make the test framework a separate module -->
-		<!-- Another benefit with a test framework module is that we can distribute logback-test.xml -->
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
@@ -107,6 +66,12 @@
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
 			<version>0.9-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonatype.sisu</groupId>
+			<artifactId>sisu-guice</artifactId>
+			<version>3.1.5</version>
+			<scope>test</scope>
 		</dependency>		
 		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
 		<dependency>

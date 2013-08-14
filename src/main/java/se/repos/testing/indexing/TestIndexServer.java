@@ -1,4 +1,4 @@
-package se.repos.indexing.testing;
+package se.repos.testing.indexing;
 
 import org.apache.solr.client.solrj.SolrServer;
 

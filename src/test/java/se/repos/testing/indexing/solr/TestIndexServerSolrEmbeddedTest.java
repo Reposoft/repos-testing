@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.solr;
+package se.repos.testing.indexing.solr;
 
 import static org.junit.Assert.*;
 
@@ -11,8 +11,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.Test;
 
-import se.repos.indexing.testing.TestIndexOptions;
-import se.repos.indexing.testing.TestIndexServer;
+import se.repos.testing.indexing.TestIndexOptions;
+import se.repos.testing.indexing.TestIndexServer;
+import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 
 public class TestIndexServerSolrEmbeddedTest {
 

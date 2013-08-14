@@ -1,4 +1,4 @@
-package se.repos.indexing.testing.svn;
+package se.repos.testing.indexing.svn;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.repos.indexing.ReposIndexing;
-import se.repos.indexing.testing.TestIndexOptions;
-import se.repos.indexing.testing.TestIndexServer;
-import se.repos.indexing.testing.solr.TestIndexServerSolrEmbedded;
 import se.repos.search.SearchReposItem;
+import se.repos.testing.indexing.TestIndexOptions;
+import se.repos.testing.indexing.TestIndexServer;
+import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 

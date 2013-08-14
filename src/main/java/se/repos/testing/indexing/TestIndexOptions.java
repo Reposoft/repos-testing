@@ -1,4 +1,4 @@
-package se.repos.indexing.testing;
+package se.repos.testing.indexing;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,10 +13,10 @@ import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
-import se.repos.indexing.testconfig.IndexingTestModule;
-import se.repos.indexing.testing.svn.SvnTestIndexing;
 import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ReposIndexingImpl;
+import se.repos.testing.indexing.svn.SvnTestIndexing;
+import se.repos.testing.indexing.testconfig.IndexingTestModule;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
@@ -87,9 +87,8 @@ public class TestIndexOptions {
 	 * Allows override of the configuration for test indexing,
 	 * though preferrably tests should only need {@link #addHandler(IndexingItemHandler)}.
 	 * 
-	 * We don't want to introduce a dependency injection framework as runtime dependency,
-	 * and test inexing must be in distributed jar,
-	 * so we do hard coded injections here and try to keep it in sync with at-injects and suggested bindings.
+	 * TODO we wanted to avoid using a DI framework when testing was a part of repos-indexing
+	 * but now that testing will always be used in scope test we could have sisu-guice as runtime dependency
 	 * 
 	 * Very geared towards {@link SvnTestIndexing}.
 	 * Subclasses could use a real injection module.
