@@ -112,7 +112,7 @@ public class ReposIndexingImpl implements ReposIndexing {
 		 */
 		
 		if (!scheduledHighest.containsKey(repository)) {
-			logger.info("Unknown index completeion status for repository {}. Polling.", repository);
+			logger.info("Unknown index completion status for repository {}. Polling.", repository);
 			RepoRevision c = getIndexedRevisionHighestCompleted(repository);
 			RepoRevision pl = getIndexedRevisionLowestStarted(repository);
 			RepoRevision ph = getIndexedRevisionHighestStarted(repository);

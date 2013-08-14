@@ -26,7 +26,7 @@ public abstract class TestIndexServerSolrHome {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private static final String HOMECONFIG = "se/repos/indexing/testing/solr/**";
+	private static final String HOMECONFIG = "se/repos/indexing/solr/testing-home/**";
 	
 	/**
 	 * Creates the cores and configuration needed for lookup.

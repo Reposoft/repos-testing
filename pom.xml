@@ -86,6 +86,7 @@
 		</dependency>
 		<!-- All jars below are needed in runtime because the module includes a test framework -->
 		<!-- It looks like we should make the test framework a separate module -->
+		<!-- Another benefit with a test framework module is that we can distribute logback-test.xml -->
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
