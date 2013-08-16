@@ -102,6 +102,14 @@ public abstract class TestIndexServerSolrHome {
 		}
 		for (String rel : extract.keySet()) {
 			File outfile = new File(destination, rel);
+			if (extract.get(rel).toString().endsWith("/]")) { // detect folder entries
+				if (!outfile.exists() && !outfile.mkdir()) {
+					logger.warn("Failed to create target folder {} ({})", outfile, extract.get(rel));
+				}
+				logger.trace("Created folder {} ({})", rel, extract.get(rel));
+				continue;
+			}
+			logger.trace("Extracting file {} ({})", rel, extract.get(rel));
 			InputStream in;
 			try {
 				in = extract.get(rel).getInputStream();
