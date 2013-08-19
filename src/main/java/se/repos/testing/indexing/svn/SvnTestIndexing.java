@@ -9,10 +9,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,13 +148,8 @@ public class SvnTestIndexing {
 		postCommitSh.setExecutable(true);
 		
 		// Set up named pipe file for communication
-		final String pipecmd = "mkfifo";
 		final File pipe = new File(hooksdir, "post-commit.pipe");
-		try {
-			Runtime.getRuntime().exec(pipecmd + " " + pipe.getAbsolutePath());
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to create named pipe using command line " + pipecmd, e);
-		}
+		createPipe(pipe);
 		
 		// Set up hook that writes revision number to named pipe
 		try {
@@ -222,6 +219,17 @@ public class SvnTestIndexing {
 			}
 		};
 	    t.start();
+	}
+
+	protected void createPipe(final File pipe) {
+		final String pipecmd = "mkfifo";
+		try {
+			Process exec = Runtime.getRuntime().exec(pipecmd + " " + pipe.getAbsolutePath());
+			InputStream err = exec.getErrorStream();
+			IOUtils.copy(err, System.out);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to create named pipe using command line " + pipecmd, e);
+		}
 	}
 	
 	/**

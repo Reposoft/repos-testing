@@ -47,7 +47,7 @@ public class SvnTestIndexingTest {
 		SvnTestIndexing.getInstance().tearDown(); // TODO make static and set up + tear down only once?
 	}
 	
-	@Test
+	@Test(timeout=100000)
 	public void testEnableCmsTestRepository() throws SolrServerException {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
@@ -104,7 +104,7 @@ public class SvnTestIndexingTest {
 	// Tests the technology, not our implementation
 	// http://stackoverflow.com/questions/3809022/most-efficient-way-to-communicate-from-shell-script-running-java-app
 	// http://stackoverflow.com/questions/1666815/is-there-a-cross-platform-way-of-handling-named-pipes-in-java-or-should-i-write/1666925#1666925	
-	@Test
+	@Test(timeout=10000)
 	public void testNamedPipe() {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
@@ -123,7 +123,7 @@ public class SvnTestIndexingTest {
 		postCommitSh.setExecutable(true);
 		
 		// set up named pipe
-		final File pipe = new File(hooksdir, "post-commit-pipe");
+		final File pipe = new File(hooksdir, "post-commit.pipe.test");
 		try {
 			Runtime.getRuntime().exec("mkfifo " + pipe.getAbsolutePath());
 		} catch (IOException e) {
