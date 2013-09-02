@@ -4,9 +4,9 @@
 package se.repos.testing.indexing;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Provider;
 
@@ -25,7 +25,7 @@ import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
 
 public class TestIndexOptions {
 
-	private List<IndexingItemHandler> handlers = new LinkedList<IndexingItemHandler>();
+	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>();
 
 	private Map<String, String> cores = new HashMap<String, String>();
 	
@@ -77,7 +77,7 @@ public class TestIndexOptions {
 		return aliases.containsKey(identifier);
 	}
 	
-	public List<IndexingItemHandler> getHandlers() {
+	public Set<IndexingItemHandler> getHandlers() {
 		return handlers;
 	}
 

@@ -28,7 +28,7 @@ public class TestIndexOptionsTest {
 		TestIndexOptions o = new TestIndexOptions()
 			.addHandler(mock(IndexingItemHandler.class));
 		assertEquals(1, o.getHandlers().size());
-		assertNotNull(o.getHandlers().get(0));
+		assertNotNull(o.getHandlers().iterator().next());
 	}
 	
 	@Test
