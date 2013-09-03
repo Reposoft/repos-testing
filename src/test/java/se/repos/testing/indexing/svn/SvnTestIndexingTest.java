@@ -64,10 +64,9 @@ public class SvnTestIndexingTest {
 		logger.debug("Enabling indexing for {}", repo);
 		SolrServer solr = SvnTestIndexing.getInstance().enable(repo).getCore("repositem");
 		
-		// TODO initial indexing to HEAD needed, or do we always get commits in tests? - no we don't
-		//QueryResponse result = solr.query(new SolrQuery("type:folder"));
-		//assertTrue("should have indexed something, got " + result.getResults().getNumFound() + " results", result.getResults().size() > 0);
-		//assertEquals("should index initial contents", "dir", result.getResults().iterator().next().getFieldValue("pathname"));
+		// before any commits but after load+enable
+		QueryResponse result = solr.query(new SolrQuery("type:folder AND pathname:dir"));
+		assertTrue("should have indexed immediately upon enable, got " + result.getResults().getNumFound() + " results", result.getResults().size() > 0);
 		
 		// first commit
 		SvnOperationFactory op = new SvnOperationFactory();

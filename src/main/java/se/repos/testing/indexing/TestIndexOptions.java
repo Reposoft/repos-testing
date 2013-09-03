@@ -19,6 +19,7 @@ import se.repos.indexing.item.ItemPathinfo;
 import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
+import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.repos.testing.indexing.svn.SvnTestIndexing;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
@@ -32,6 +33,8 @@ public class TestIndexOptions {
 	private Map<String, String> cores = new HashMap<String, String>();
 	
 	private Map<String, String> aliases = new HashMap<String, String>();
+
+	private TestIndexServer server;
 	
 	/**
 	 * Set up for basic "repositem" blocking indexing, i.e. structure but not contents.
@@ -40,6 +43,7 @@ public class TestIndexOptions {
 	public TestIndexOptions itemDefaults() {
 		this.addHandler(new ItemPathinfo());
 		this.addCore("repositem", "se/repos/indexing/solr/repositem/**");
+		this.server = new TestIndexServerSolrEmbedded();
 		return this;
 	}
 	
@@ -85,6 +89,13 @@ public class TestIndexOptions {
 
 	public Map<String, String> getCores() {
 		return cores;
+	}
+	
+	/**
+	 * Meant for internal use.
+	 */
+	public TestIndexServer getServer() {
+		return server;
 	}
 	
 	/**

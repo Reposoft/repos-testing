@@ -12,19 +12,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmatesoft.svn.core.io.SVNRepository;
 
 import se.repos.indexing.ReposIndexing;
 import se.repos.search.SearchReposItem;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.repos.testing.indexing.TestIndexServer;
-import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
+import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
+import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 
@@ -71,7 +75,7 @@ public class SvnTestIndexing {
 		}
 		this.options = options;
 		// If we want to start reusing severs hear we could clear all cores if there is an existing instance
-		this.server = new TestIndexServerSolrEmbedded();
+		this.server = options.getServer();
 		this.server.beforeTest(options);
 		this.indexing = options.getIndexing(server.getCore("repositem"));
 	}
@@ -106,7 +110,19 @@ public class SvnTestIndexing {
 		PostCommitInvocation postcommit = new ReposIndexingInvocation(repo, indexing);
 		installHooks(repo.getAdminPath(), postcommit);
 		// TODO boolean deleteSolrDataAtTearDown = repo.isKeep();
+		syncHead(repo);
 		return this;
+	}
+	
+	void syncHead(final CmsTestRepository repository) {
+		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, SVNRepository>() {private static final long serialVersionUID = 1L;{
+			put(repository, repository.getSvnkit());
+		}});
+		RepoRevision head = lookup.getYoungest(repository);
+		if (head.getNumber() > 0) {
+			logger.debug("Repository's revision is {} at enable, running initial sync", head);
+			options.getIndexing(getCore("repositem")).sync(repository, head);
+		}
 	}
 	
 	public void tearDown() {
