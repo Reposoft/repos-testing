@@ -17,11 +17,15 @@ import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
 import se.repos.indexing.twophases.ItemContentsNocache;
+import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.svn.SvnTestIndexing;
+import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
+import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
+import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 
 public class TestIndexOptions {
 
@@ -108,12 +112,16 @@ public class TestIndexOptions {
 		reader.setSVNLookClientProvider(svnlook);
 		CmsContentsReaderSvnkitLook contents = new CmsContentsReaderSvnkitLook();
 		contents.setSVNLookClientProvider(svnlook);
+		CmsRepositoryLookupSvnkitLook lookup = new CmsRepositoryLookupSvnkitLook();
+		lookup.setSVNLookClientProvider(svnlook);
 		// Indexing
 		ReposIndexingImpl impl = new ReposIndexingImpl();
 		impl.setCmsChangesetReader(reader);
 		impl.setItemBlocking(getHandlers());
 		impl.setSolrRepositem(repositem);
 		impl.setItemContentsBufferStrategy(new ItemContentsNocache().setCmsContentsReader(contents));
+		impl.setItemPropertiesBufferStrategy(new ItemPropertiesImmediate().setCmsContentsReader(contents));
+		impl.setRevisionLookup(lookup);
 		return impl;
 	}
 	
