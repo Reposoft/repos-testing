@@ -228,7 +228,7 @@ public class SvnTestIndexingTest {
 	    // verify that hook revision has been received
 	    assertEquals("Should have got the revision from the hook", 2, revs.get(0).intValue());
 	    assertTrue("The commit should block while the indexing operation runs, got " + timeCommit, timeCommit > 1000);
-	    assertTrue("The actual commont shouldn't take long, got " + timeCommit, timeCommit < 2000);
+	    assertTrue("The actual commont shouldn't take long, got " + timeCommit, timeCommit < 10000);
 	}	
 
 }

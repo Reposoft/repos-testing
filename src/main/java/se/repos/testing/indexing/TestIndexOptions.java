@@ -20,12 +20,10 @@ import se.repos.indexing.twophases.ItemContentsNocache;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.svn.SvnTestIndexing;
-import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 
 public class TestIndexOptions {
 
