@@ -12,8 +12,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -34,6 +36,8 @@ import org.tmatesoft.svn.core.wc2.SvnRemoteCopy;
 import org.tmatesoft.svn.core.wc2.SvnRemoteDelete;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
+import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.indexing.item.IndexingItemProgress;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.repos.testing.indexing.svn.SvnTestIndexing;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -247,8 +251,8 @@ public class SvnTestIndexingTest {
 		SolrServer coreNotCreatedYet = null; // TODO how to get hold of dummycore here?
 		options.addHandler(new DummyItemHandler(coreNotCreatedYet));
 		
-		SvnTestIndexing instance = SvnTestIndexing.getInstance(options);
-		instance.enable(repo);
+		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
+		indexing.enable(repo);
 		
 		SvnImport im = repo.getSvnkitOp().createImport();
 		File tmp = File.createTempFile("temp-" + this.getClass().getName(), "");
@@ -260,7 +264,34 @@ public class SvnTestIndexingTest {
 		assertEquals("Should have indexed through the promised core and the given handler", 1, 
 				coreNotCreatedYet.query(new SolrQuery("*:*")).getResults().getNumFound());
 		assertEquals("Core by name should be the same", 1,
-				instance.getCore("dummycore").query(new SolrQuery("*:*")).getResults().getNumFound());
+				indexing.getCore("dummycore").query(new SolrQuery("*:*")).getResults().getNumFound());
 	}
 
+	@Test(expected=RuntimeException.class)
+	public void testRecoverAfterException() throws Exception {
+		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
+		
+		TestIndexOptions options = new TestIndexOptions().itemDefaults();
+		options.addHandler(new IndexingItemHandler() {
+			@Override
+			public void handle(IndexingItemProgress progress) {
+				throw new RuntimeException("Some error here and the test should not hang");
+			}
+			@Override
+			public Set<Class<? extends IndexingItemHandler>> getDependencies() {
+				return new HashSet<Class<? extends IndexingItemHandler>>();
+			}
+		});
+		
+		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
+		indexing.enable(repo);
+		
+		SvnImport im = repo.getSvnkitOp().createImport();
+		File tmp = File.createTempFile("temp-" + this.getClass().getName(), "");
+		im.setSource(tmp);
+		im.setSingleTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl() + "/temp")));
+		im.run();
+		tmp.delete();
+	}
+	
 }
