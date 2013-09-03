@@ -25,6 +25,7 @@ import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
+import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 public class TestIndexOptions {
 
@@ -34,7 +35,9 @@ public class TestIndexOptions {
 	
 	private Map<String, String> aliases = new HashMap<String, String>();
 
-	private TestIndexServer server;
+	private TestIndexServer server = null;
+
+	private ReposIndexing indexing = null;
 	
 	/**
 	 * Set up for basic "repositem" blocking indexing, i.e. structure but not contents.
@@ -99,6 +102,30 @@ public class TestIndexOptions {
 	}
 	
 	/**
+	 * Loads a solr core that was configured and cleared at {@link #getInstance(TestIndexOptions)}.
+	 * To get live index data in tests, first call {@link #enable(CmsTestRepository)}.
+	 * @param identifier our internal core name, though maybe suffixed in Solr
+	 * @return direct Solr access to the core
+	 */
+	public SolrServer getCore(String identifier) {
+		TestIndexOptions options = this;
+		if (!options.hasCore(identifier)) {
+			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores().keySet());
+		}
+		return this.server.getCore(identifier);
+	}
+
+	public void tearDown() {
+		this.server.destroy();
+		this.server = null;
+		this.indexing = null;
+	}
+	
+	public ReposIndexing getIndexing() {
+		return getIndexing(getCore("repositem"));
+	}	
+	
+	/**
 	 * Allows override of the configuration for test indexing,
 	 * though preferrably tests should only need {@link #addHandler(IndexingItemHandler)}.
 	 * 
@@ -112,7 +139,15 @@ public class TestIndexOptions {
 	 * @param repositem The fundamental core needed for indexing to run
 	 * @return configured indexing for current test backend
 	 */
-	public ReposIndexing getIndexing(SolrServer repositem) {
+	protected ReposIndexing getIndexing(SolrServer repositem) {
+		// We're assuming here that repositem doesn't change
+		if (this.indexing == null) {
+			this.indexing = getIndexingNew(repositem);
+		}
+		return this.indexing;
+	}
+	
+	protected ReposIndexing getIndexingNew(SolrServer repositem) {
 		// Backend
 		//bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
 		Provider<SVNLookClient> svnlook = new SvnlookClientProviderStateless();

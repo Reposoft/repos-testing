@@ -247,7 +247,7 @@ public class SvnTestIndexingTest {
 		
 		TestIndexOptions options = new TestIndexOptions().itemDefaults();
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
-		SolrServer coreNotCreatedYet = null; // TODO how to get hold of dummycore here?
+		SolrServer coreNotCreatedYet = options.getCore("dummycore");
 		options.addHandler(new DummyItemHandler(coreNotCreatedYet));
 		
 		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
