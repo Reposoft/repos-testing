@@ -8,25 +8,18 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Provider;
-
 import org.apache.solr.client.solrj.SolrServer;
-import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
-import se.repos.indexing.ReposIndexing;
+import com.google.inject.Module;
+
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
-import se.repos.indexing.twophases.ItemContentsNocache;
-import se.repos.indexing.twophases.ItemPropertiesImmediate;
-import se.repos.indexing.twophases.ReposIndexingImpl;
-import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
-import se.repos.testing.indexing.svn.SvnTestIndexing;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
+import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
+/**
+ * Carries no state, can be reused between tests if desired.
+ */
 public class TestIndexOptions {
 
 	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>();
@@ -34,28 +27,31 @@ public class TestIndexOptions {
 	private Map<String, String> cores = new HashMap<String, String>();
 	
 	private Map<String, String> aliases = new HashMap<String, String>();
-
-	private TestIndexServer server = null;
-
-	private ReposIndexing indexing = null;
+	
+	// usage is a bit tricky so try to produce meaningful errors
+	boolean coresUsed = false;
+	boolean handlersUsed = false;
 	
 	/**
 	 * Set up for basic "repositem" blocking indexing, i.e. structure but not contents.
 	 * @return for chaining
 	 */
 	public TestIndexOptions itemDefaults() {
-		this.addHandler(new ItemPathinfo());
 		this.addCore("repositem", "se/repos/indexing/solr/repositem/**");
-		this.server = new TestIndexServerSolrEmbedded();
+		itemDefaultHandlers();
 		return this;
 	}
-	
-	public TestIndexOptions addHandler(IndexingItemHandler handler) {
-		this.handlers.add(handler);
-		return this;
+
+	protected void itemDefaultHandlers() {
+		// If we need to initialize handlers in a context that must be an earlier context than #getConfiguration
+		this.addHandler(new ItemPathinfo());
+		// TODO add the other handlers
 	}
 	
 	public TestIndexOptions addCore(String identifier, String resourcePattern) {
+		if (coresUsed) {
+			throw new IllegalStateException("Test indexing has already been initialized with cores, can not add new");
+		}
 		cores.put(identifier, resourcePattern);
 		return this;
 	}
@@ -86,87 +82,44 @@ public class TestIndexOptions {
 		return aliases.containsKey(identifier);
 	}
 	
-	public Set<IndexingItemHandler> getHandlers() {
-		return handlers;
-	}
-
 	public Map<String, String> getCores() {
+		coresUsed = true;
 		return cores;
 	}
 	
 	/**
-	 * Meant for internal use.
+	 * Must be done before {@link SvnTestIndexing#enable(CmsTestRepository)}
+	 * @param handler Configured handler
+	 * @return
 	 */
-	public TestIndexServer getServer() {
-		return server;
-	}
-	
-	/**
-	 * Loads a solr core that was configured and cleared at {@link #getInstance(TestIndexOptions)}.
-	 * To get live index data in tests, first call {@link #enable(CmsTestRepository)}.
-	 * @param identifier our internal core name, though maybe suffixed in Solr
-	 * @return direct Solr access to the core
-	 */
-	public SolrServer getCore(String identifier) {
-		TestIndexOptions options = this;
-		if (!options.hasCore(identifier)) {
-			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores().keySet());
+	public TestIndexOptions addHandler(IndexingItemHandler handler) {
+		if (handlersUsed) {
+			throw new IllegalStateException("Test indexing has already been enabled with handlers, can not add new");
 		}
-		return this.server.getCore(identifier);
-	}
-
-	public void tearDown() {
-		this.server.destroy();
-		this.server = null;
-		this.indexing = null;
-	}
-	
-	public ReposIndexing getIndexing() {
-		return getIndexing(getCore("repositem"));
+		this.handlers.add(handler);
+		return this;
 	}	
 	
-	/**
-	 * Allows override of the configuration for test indexing,
-	 * though preferrably tests should only need {@link #addHandler(IndexingItemHandler)}.
-	 * 
-	 * TODO we wanted to avoid using a DI framework when testing was a part of repos-indexing
-	 * but now that testing will always be used in scope test we could have sisu-guice as runtime dependency
-	 * 
-	 * Very geared towards {@link SvnTestIndexing}.
-	 * Subclasses could use a real injection module.
-	 * See {@link se.repos.testing.indexing.testconfig.IndexingTestModule}.
-	 * 
-	 * @param repositem The fundamental core needed for indexing to run
-	 * @return configured indexing for current test backend
-	 */
-	protected ReposIndexing getIndexing(SolrServer repositem) {
-		// We're assuming here that repositem doesn't change
-		if (this.indexing == null) {
-			this.indexing = getIndexingNew(repositem);
-		}
-		return this.indexing;
+	public Set<IndexingItemHandler> getHandlers() {
+		handlersUsed = true;
+		return handlers;
 	}
 	
-	protected ReposIndexing getIndexingNew(SolrServer repositem) {
-		// Backend
-		//bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
-		Provider<SVNLookClient> svnlook = new SvnlookClientProviderStateless();
-		//bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
-		CmsChangesetReaderSvnkitLook reader = new CmsChangesetReaderSvnkitLook();
-		reader.setSVNLookClientProvider(svnlook);
-		CmsContentsReaderSvnkitLook contents = new CmsContentsReaderSvnkitLook();
-		contents.setSVNLookClientProvider(svnlook);
-		CmsRepositoryLookupSvnkitLook lookup = new CmsRepositoryLookupSvnkitLook();
-		lookup.setSVNLookClientProvider(svnlook);
-		// Indexing
-		ReposIndexingImpl impl = new ReposIndexingImpl();
-		impl.setCmsChangesetReader(reader);
-		impl.setItemBlocking(getHandlers());
-		impl.setSolrRepositem(repositem);
-		impl.setItemContentsBufferStrategy(new ItemContentsNocache().setCmsContentsReader(contents));
-		impl.setItemPropertiesBufferStrategy(new ItemPropertiesImmediate().setCmsContentsReader(contents));
-		impl.setRevisionLookup(lookup);
-		return impl;
+	/**
+	 * Will be used once from {@link SvnTestIndexing#enable(CmsTestRepository)} to get indexing an possibly nearby services.
+	 * @param repositem
+	 * @return
+	 */
+	protected Module getConfiguration(SolrServer repositem) {
+		return new TestIndexingDefaultConfig(repositem, getHandlers());
+	}
+
+	/**
+	 * Notified about SvnTestIndexing tearDown.
+	 */
+	public void onTearDown() {
+		coresUsed = false;
+		handlersUsed = false;
 	}
 	
 }

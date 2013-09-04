@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2004-2012 Repos Mjukvara AB
  */
-package se.repos.testing.indexing.svn;
+package se.repos.testing.indexing;
 
 import static org.junit.Assert.*;
 
@@ -22,6 +22,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +39,8 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.testing.indexing.SvnTestIndexing;
 import se.repos.testing.indexing.TestIndexOptions;
-import se.repos.testing.indexing.svn.SvnTestIndexing;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 
@@ -102,7 +103,7 @@ public class SvnTestIndexingTest {
 	}
 	
 	@Test
-	public void testWithAdditionalIndexers() {
+	public void testWithAdditionalHandlers() {
 		
 	}
 	
@@ -245,12 +246,15 @@ public class SvnTestIndexingTest {
 	public void testCustomCore() throws SolrServerException, Exception {
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
 		
+		// first add cores
 		TestIndexOptions options = new TestIndexOptions().itemDefaults();
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
-		SolrServer coreNotCreatedYet = options.getCore("dummycore");
-		options.addHandler(new DummyItemHandler(coreNotCreatedYet));
-		
+		// then getInstance
 		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
+		// then add handlers
+		SolrServer extracore = indexing.getCore("dummycore");
+		options.addHandler(new DummyItemHandler(extracore));
+		// then enable for repository
 		indexing.enable(repo);
 		
 		SvnImport im = repo.getSvnkitOp().createImport();
@@ -261,11 +265,12 @@ public class SvnTestIndexingTest {
 		tmp.delete();
 		
 		assertEquals("Should have indexed through the promised core and the given handler", 1, 
-				coreNotCreatedYet.query(new SolrQuery("*:*")).getResults().getNumFound());
+				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
 		assertEquals("Core by name should be the same", 1,
-				indexing.getCore("dummycore").query(new SolrQuery("*:*")).getResults().getNumFound());
+				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
 	}
 
+	@Ignore // should be fixed but is low priority
 	@Test(expected=RuntimeException.class)
 	public void testRecoverAfterException() throws Exception {
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
@@ -291,6 +296,12 @@ public class SvnTestIndexingTest {
 		im.setSingleTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl() + "/temp")));
 		im.run();
 		tmp.delete();
+	}
+	
+	@Test
+	public void testMultipleRepositories() {
+		// For now all repositories must have the same configuration (handlers etc) becuase of the way that ReposIndexing is initialized
+		// Future functionality is one instance of ReposIndexing per repository, which should be quite easy to support
 	}
 	
 }

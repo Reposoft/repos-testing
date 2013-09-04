@@ -1,10 +1,13 @@
 /**
  * Copyright (C) 2004-2012 Repos Mjukvara AB
  */
-package se.repos.testing.indexing.testconfig;
+package se.repos.testing.indexing.config;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
@@ -13,12 +16,16 @@ import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemContentsBufferStrategy;
 import se.repos.indexing.item.ItemPathinfo;
+import se.repos.indexing.item.ItemPropertiesBufferStrategy;
 import se.repos.indexing.twophases.ItemContentsNocache;
+import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
+import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
 import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
+import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.item.inspection.CmsChangesetReader;
 import se.simonsoft.cms.item.inspection.CmsContentsReader;
 
@@ -30,12 +37,18 @@ import com.google.inject.name.Names;
  * Indexing configuration for our tests in this module.
  * See also the distributed standard config for unit tests, {@link TestIndexOptions#getIndexing()}.
  */
-public class IndexingTestModule extends AbstractModule {
+public class TestIndexingDefaultConfig extends AbstractModule {
 
 	private SolrServer repositem;
+	private Set<IndexingItemHandler> handlers;
 
-	public IndexingTestModule(SolrServer solrRepositemCore) {
+	/**
+	 * @param solrRepositemCore
+	 * @param handlers separately configured handlers (if the default handlers start to have dependencies we must accept classes too)
+	 */
+	public TestIndexingDefaultConfig(SolrServer solrRepositemCore, Set<IndexingItemHandler> handlers) {
 		this.repositem = solrRepositemCore;
+		this.handlers = handlers;
 	}
 	
 	@Override
@@ -44,20 +57,19 @@ public class IndexingTestModule extends AbstractModule {
 			.toInstance(repositem);
 		
 		bind(ReposIndexing.class).to(ReposIndexingImpl.class);
-		
-		List<IndexingItemHandler> blocking = new LinkedList<IndexingItemHandler>();
-		blocking.add(new ItemPathinfo()); // when we need injections to indexers we must use Multibinder
-		List<IndexingItemHandler> background = new LinkedList<IndexingItemHandler>();
-		bind(new TypeLiteral<Iterable<IndexingItemHandler>>(){}).annotatedWith(Names.named("blocking")).toInstance(blocking);
-		bind(new TypeLiteral<Iterable<IndexingItemHandler>>(){}).annotatedWith(Names.named("background")).toInstance(background);
+
+		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("blocking")).toInstance(handlers);
+		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("background")).toInstance(Collections.EMPTY_SET);
 		
 		// backend-svnkit
 		bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
 		bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
 		bind(CmsContentsReader.class).to(CmsContentsReaderSvnkitLook.class);
+		bind(CmsRepositoryLookup.class).annotatedWith(Names.named("inspection")).to(CmsRepositoryLookupSvnkitLook.class);
 		
 		// tweaks
 		bind(ItemContentsBufferStrategy.class).to(ItemContentsNocache.class);
+		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);		
 	}
 
 }

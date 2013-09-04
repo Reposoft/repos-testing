@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2004-2012 Repos Mjukvara AB
  */
-package se.repos.testing.indexing.svn;
+package se.repos.testing.indexing;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -21,9 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.io.SVNRepository;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+
 import se.repos.indexing.ReposIndexing;
 import se.repos.search.SearchReposItem;
-import se.repos.testing.indexing.TestIndexOptions;
+import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
@@ -42,6 +46,8 @@ public class SvnTestIndexing {
 	 */
 	private TestIndexOptions options = null;
 	private Collection<Thread> threads = new LinkedList<Thread>();
+
+	private TestIndexServerSolrEmbedded server;
 	
 	/**
 	 * Enforce singleton, makes optimizations possible.
@@ -61,8 +67,8 @@ public class SvnTestIndexing {
 	public static SvnTestIndexing getInstance(TestIndexOptions options) {
 		if (instance == null) {
 			instance = new SvnTestIndexing();
+			instance.beforeTest(options); // we assume that getInstance is called before each test	
 		}
-		instance.beforeTest(options); // we assume that getInstance is called before each test
 		return instance;
 	}
 	
@@ -71,55 +77,23 @@ public class SvnTestIndexing {
 			throw new IllegalArgumentException("repositem core is required for indexing, use options.itemDefaults to configure");
 		}
 		this.options = options;
-		// If we want to start reusing severs hear we could clear all cores if there is an existing instance
-		this.options.getServer().beforeTest(options);
+		// If we want to start reusing severs here we could clear all cores if there is an existing instance
+		this.server = new TestIndexServerSolrEmbedded();
+		this.server.beforeTest(options);
 	}
 	
 	/**
-	 * @return Search abstraction for basic queries in the "repositem" core.
+	 * Must be called so the instance is reset and can take new arguments
 	 */
-	public SearchReposItem getItem() {
-		throw new UnsupportedOperationException("not implemented"); // needs a SearchReposItem impl
-	}
-	
-	/**
-	 * @return same as {@link TestIndexOptions#getCore(String)}
-	 */
-	public SolrServer getCore(String identifier) {
-		return options.getCore(identifier);
-	}
-	
-	/**
-	 * Enable blocking hook call from a test repository,
-	 * using index handlers from {@link #getInstance(TestIndexOptions)}.
-	 * @param repo A repository
-	 * @return for chaining, suggest
-	 */
-	public SvnTestIndexing enable(CmsTestRepository repo) {
-		PostCommitInvocation postcommit = new ReposIndexingInvocation(repo, options.getIndexing());
-		installHooks(repo.getAdminPath(), postcommit);
-		// TODO add feature for keeping data after test, boolean deleteSolrDataAtTearDown = repo.isKeep();
-		syncHead(repo);
-		return this;
-	}
-	
-	void syncHead(final CmsTestRepository repository) {
-		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, SVNRepository>() {private static final long serialVersionUID = 1L;{
-			put(repository, repository.getSvnkit());
-		}});
-		RepoRevision head = lookup.getYoungest(repository);
-		if (head.getNumber() > 0) {
-			logger.debug("Repository's revision is {} at enable, running initial sync", head);
-			options.getIndexing().sync(repository, head);
-		}
-	}
-	
 	public void tearDown() {
 		// TODO add feature for keeping data after test, handle deleteSolrDataAtTearDown
 		tearDownThreads();
 		// repository and hook is removed by SvnTestSetup.tearDown
-		instance.options.tearDown();
-		instance.options = null;
+		this.options.onTearDown();
+		this.options = null;
+		this.server.destroy();
+		this.server = null;
+		instance = null;
 	}
 	
 	void tearDownThreads() {
@@ -132,6 +106,63 @@ public class SvnTestIndexing {
 			}
 		}
 		threads.clear();
+	}
+	
+	/**
+	 * Loads a solr core that was configured and cleared at {@link #getInstance(TestIndexOptions)}.
+	 * To get live index data in tests, first call {@link #enable(CmsTestRepository)}.
+	 * @param identifier our internal core name, though maybe suffixed in Solr
+	 * @return direct Solr access to the core
+	 */
+	public SolrServer getCore(String identifier) {
+		if (!options.hasCore(identifier)) {
+			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores().keySet());
+		}
+		return this.server.getCore(identifier);
+	}
+	
+	/**
+	 * @return Search abstraction for basic queries in the "repositem" core.
+	 */
+	public SearchReposItem getItem() {
+		throw new UnsupportedOperationException("not implemented"); // needs a SearchReposItem impl
+	}
+	
+	/**
+	 * Enable blocking hook call from a test repository,
+	 * using index handlers from {@link #getInstance(TestIndexOptions)}.
+	 * @param repo A repository
+	 * @return for chaining, suggest
+	 */
+	public SvnTestIndexing enable(CmsTestRepository repo) {
+		Module config = options.getConfiguration(getCore("repositem"));
+		Injector context = getContext(config);
+		//CmsRepositoryLookup lookup = context.getInstance(CmsRepositoryLookup.class); // TODO can use existing context if svnlook based lookup implements getYoungest
+		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
+		
+		PostCommitInvocation postcommit = new ReposIndexingInvocation(repo, indexing);
+		installHooks(repo.getAdminPath(), postcommit);
+		
+		// TODO add feature for keeping data after test, boolean deleteSolrDataAtTearDown = repo.isKeep();
+		
+		syncHead(repo, indexing);
+		
+		return this;
+	}
+	
+	protected Injector getContext(Module... configuration) {
+		return Guice.createInjector(configuration);
+	}
+	
+	void syncHead(final CmsTestRepository repository, ReposIndexing indexing) {
+		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, SVNRepository>() {private static final long serialVersionUID = 1L;{
+			put(repository, repository.getSvnkit());
+		}});
+		RepoRevision head = lookup.getYoungest(repository);
+		if (head.getNumber() > 0) {
+			logger.debug("Repository's revision is {} at enable, running initial sync", head);
+			indexing.sync(repository, head);
+		}
 	}
 	
 	private void installHooks(File repositoryLocalPath, final PostCommitInvocation postcommit) {

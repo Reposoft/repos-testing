@@ -1,4 +1,4 @@
-package se.repos.testing.indexing.svn;
+package se.repos.testing.indexing;
 
 import java.io.IOException;
 import java.util.HashSet;
