@@ -127,6 +127,7 @@ public class SvnTestIndexingTest {
 			fail(e.getMessage());
 		}
 		postCommitSh.setExecutable(true);
+		System.out.println("namedpipe: Created hook " + postCommitSh);
 		
 		// set up named pipe
 		final File pipe = new File(hooksdir, "post-commit.pipe.test");
@@ -135,6 +136,7 @@ public class SvnTestIndexingTest {
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
+		System.out.println("namedpipe: Created pipe " + pipe);
 		
 		try {
 			// hook that writes revision number to named pipe
@@ -147,18 +149,20 @@ public class SvnTestIndexingTest {
 			fail(e.getMessage());
 		}
 		// note that the hook should block until java has read the message
+		System.out.println("namedpipe: Wrote to hook " + postCommitSh);
 		
 		// set up receiver
 	    final List<Long> revs = new LinkedList<Long>();
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				System.out.println("Awaiting hook call at " + pipe);
+				System.out.println("namedpipe: Awaiting hook call at " + pipe);
 				BufferedReader r = null;
 				try {
 					r = new BufferedReader(new FileReader(pipe));
 					// TODO make reading take 1000 ms so we can verify that the svn operation blocks
 					String echoed = r.readLine();
+					System.out.println("namedpipe: Got line from pipe =" + echoed);
 					revs.add(Long.parseLong(echoed));
 					// we'd have to run indexing of the revision here, and make
 					// all of it sync
@@ -176,13 +180,13 @@ public class SvnTestIndexingTest {
 						}
 					}
 				}
-				System.out.println("Now we do a quite slow indexing here and the commit should not return until we're done");
+				System.out.println("namedpipe: Now we do a quite slow indexing here and the commit should not return until we're done");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
-				System.out.println("Writing response to waiting (hopefully) hook");
+				System.out.println("namedpipe: Writing response to waiting (hopefully) hook");
 				BufferedWriter w = null;
 				try {
 					w = new BufferedWriter(new FileWriter(pipe));
@@ -198,7 +202,7 @@ public class SvnTestIndexingTest {
 						}
 					}
 				}
-				System.out.println("Hook completed.");
+				System.out.println("namedpipe: Hook completed.");
 			}
 		};
 	    t.start();
@@ -214,13 +218,14 @@ public class SvnTestIndexingTest {
 			fail("svnkit's api's make some very easy things very difficult. " + e.getMessage());
 		}
 		long timeBeforeCommit = System.currentTimeMillis();
-		System.out.println("Running commit to " + repo.getUrl());
+		System.out.println("namedpipe: Running commit to " + repo.getUrl());
 		SVNCommitInfo commitInfo = null;
 		try {
 			commitInfo = del.run();
 		} catch (SVNException e) {
 			fail("Operation on test repo failed. " + e.getMessage());
 		}
+		System.out.println("namedpipe: Commit returned revision " + commitInfo.getNewRevision());
 		assertEquals("should have deleted", 2, commitInfo.getNewRevision());
 		long timeCommit = System.currentTimeMillis() - timeBeforeCommit;
 		
@@ -230,6 +235,7 @@ public class SvnTestIndexingTest {
 		} catch (InterruptedException e) {
 			fail("threading stuff. " + e.getMessage());
 		}
+	    System.out.println("namedpipe: Pipe reader thread joined");
 
 	    // verify that hook revision has been received
 	    assertEquals("Should have got the revision from the hook", 2, revs.get(0).intValue());
