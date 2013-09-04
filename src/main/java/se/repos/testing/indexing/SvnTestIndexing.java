@@ -27,7 +27,6 @@ import com.google.inject.Module;
 
 import se.repos.indexing.ReposIndexing;
 import se.repos.search.SearchReposItem;
-import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
@@ -47,7 +46,7 @@ public class SvnTestIndexing {
 	private TestIndexOptions options = null;
 	private Collection<Thread> threads = new LinkedList<Thread>();
 
-	private TestIndexServerSolrEmbedded server;
+	private TestIndexServer server;
 	
 	/**
 	 * Enforce singleton, makes optimizations possible.
@@ -78,7 +77,7 @@ public class SvnTestIndexing {
 		}
 		this.options = options;
 		// If we want to start reusing severs here we could clear all cores if there is an existing instance
-		this.server = new TestIndexServerSolrEmbedded();
+		this.server = options.selectTestServer();
 		this.server.beforeTest(options);
 	}
 	

@@ -35,7 +35,7 @@ public abstract class TestIndexServerSolrHome {
 	 * Creates the cores and configuration needed for lookup.
 	 * @return
 	 */
-	File createHome() {
+	protected File createHome() {
 		File instanceDir;
 		try {
 			instanceDir = File.createTempFile("testindexing-", ".dir");
@@ -58,13 +58,22 @@ public abstract class TestIndexServerSolrHome {
 		for (String c : cores.keySet()) {
 			File coreFolder = new File(instanceDir, c);
 			if (coreFolder.exists()) {
-				throw new UnsupportedOperationException("Reuse of existing solr.home is not supported."); // Need to implement use of aliases
+				onCoreExisting(coreFolder);
 			}
 			coreFolder.mkdir();
 			extractResourceFolder(cores.get(c), coreFolder);
 			logger.debug("Test server core {} added", c);
+			onCoreCreated(coreFolder);
 		}
 		return instanceDir;
+	}
+	
+	protected void onCoreExisting(File coreFolder) {
+		throw new UnsupportedOperationException("Reuse of existing solr.home is not supported."); // Need to implement use of aliases
+	}
+	
+	protected void onCoreCreated(File coreFolder) {
+		logger.debug("No core reload needed for embedded");
 	}
 	
 	void destroy(File instanceDir) {

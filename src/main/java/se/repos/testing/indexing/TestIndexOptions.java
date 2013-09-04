@@ -14,7 +14,11 @@ import com.google.inject.Module;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
+import se.repos.lgr.Lgr;
+import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
+import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
+import se.repos.testing.indexing.solr.TestIndexServerSolrJettyExample;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 /**
@@ -22,6 +26,8 @@ import se.simonsoft.cms.testing.svn.CmsTestRepository;
  */
 public class TestIndexOptions {
 
+	private static final Lgr logger = LgrFactory.getLogger();
+	
 	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>();
 
 	private Map<String, String> cores = new HashMap<String, String>();
@@ -120,6 +126,20 @@ public class TestIndexOptions {
 	public void onTearDown() {
 		coresUsed = false;
 		handlersUsed = false;
+	}
+
+	/**
+	 * Called once per test to get the choice of server.
+	 * @return server waiting for a call to {@link TestIndexServer#beforeTest(TestIndexOptions)}
+	 */
+	public TestIndexServer selectTestServer() {
+		TestIndexServer test = TestIndexServerSolrJettyExample.locate();
+		if (test != null) {
+			return test;
+		}
+		logger.info("Embedded Solr used as fallback. Inspection of index won't be possible.");
+		// fall back to embedded server
+		return new TestIndexServerSolrEmbedded();
 	}
 	
 }
