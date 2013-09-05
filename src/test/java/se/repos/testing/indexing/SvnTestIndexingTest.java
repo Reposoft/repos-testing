@@ -126,7 +126,7 @@ public class SvnTestIndexingTest {
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
-		postCommitSh.setExecutable(true);
+		postCommitSh.setExecutable(true, false);
 		System.out.println("namedpipe: Created hook " + postCommitSh);
 		
 		// set up named pipe
@@ -137,6 +137,7 @@ public class SvnTestIndexingTest {
 			fail(e.getMessage());
 		}
 		System.out.println("namedpipe: Created pipe " + pipe);
+		pipe.setWritable(true, false);
 		
 		try {
 			// hook that writes revision number to named pipe, then waits for confirmation that hook has processed

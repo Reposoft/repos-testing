@@ -178,11 +178,12 @@ public class SvnTestIndexing {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to create post-commit script " + postCommitSh, e);
 		}
-		postCommitSh.setExecutable(true);
+		postCommitSh.setExecutable(true, false);
 		
 		// Set up named pipe file for communication
 		final File pipe = new File(hooksdir, "post-commit.pipe");
 		createPipe(pipe);
+		pipe.setWritable(true, false);
 		
 		// Set up hook that writes revision number to named pipe
 		try {
