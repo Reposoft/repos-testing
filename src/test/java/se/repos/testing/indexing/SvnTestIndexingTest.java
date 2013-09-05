@@ -132,12 +132,11 @@ public class SvnTestIndexingTest {
 		// set up named pipe
 		final File pipe = new File(hooksdir, "post-commit.pipe.test");
 		try {
-			Runtime.getRuntime().exec("mkfifo " + pipe.getAbsolutePath());
+			Runtime.getRuntime().exec("mkfifo --mode=0666 " + pipe.getAbsolutePath());
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
 		System.out.println("namedpipe: Created pipe " + pipe);
-		pipe.setWritable(true, false);
 		
 		try {
 			// hook that writes revision number to named pipe, then waits for confirmation that hook has processed

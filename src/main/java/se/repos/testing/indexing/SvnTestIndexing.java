@@ -38,6 +38,9 @@ public class SvnTestIndexing {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SvnTestIndexing.class);
 
+	// test may run as different user than svn so we might need to override umask
+	private static final String MKFIFO_OPTIONS = " --mode=0666";
+
 	private static SvnTestIndexing instance = null;
 	
 	/**
@@ -183,7 +186,6 @@ public class SvnTestIndexing {
 		// Set up named pipe file for communication
 		final File pipe = new File(hooksdir, "post-commit.pipe");
 		createPipe(pipe);
-		pipe.setWritable(true, false);
 		
 		// Set up hook that writes revision number to named pipe
 		try {
@@ -256,7 +258,7 @@ public class SvnTestIndexing {
 	}
 
 	protected void createPipe(final File pipe) {
-		final String pipecmd = "mkfifo";
+		final String pipecmd = "mkfifo" + MKFIFO_OPTIONS;
 		try {
 			Process exec = Runtime.getRuntime().exec(pipecmd + " " + pipe.getAbsolutePath());
 			InputStream err = exec.getErrorStream();
