@@ -110,7 +110,7 @@ public class SvnTestIndexingTest {
 	// Tests the technology, not our implementation
 	// http://stackoverflow.com/questions/3809022/most-efficient-way-to-communicate-from-shell-script-running-java-app
 	// http://stackoverflow.com/questions/1666815/is-there-a-cross-platform-way-of-handling-named-pipes-in-java-or-should-i-write/1666925#1666925	
-	@Test(timeout=10000)
+	@Test(timeout=60000)
 	public void testNamedPipe() {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
@@ -139,7 +139,7 @@ public class SvnTestIndexingTest {
 		System.out.println("namedpipe: Created pipe " + pipe);
 		
 		try {
-			// hook that writes revision number to named pipe
+			// hook that writes revision number to named pipe, then waits for confirmation that hook has processed
 			FileWriter hookbridge = new FileWriter(postCommitSh);
 			hookbridge.write("#!/bin/sh\n");
 			hookbridge.write("echo $2 > " + pipe.getAbsolutePath() + "\n");
@@ -156,13 +156,13 @@ public class SvnTestIndexingTest {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
-				System.out.println("namedpipe: Awaiting hook call at " + pipe);
+				System.out.println("namedpipe-wait: Wait thread started");
 				BufferedReader r = null;
 				try {
 					r = new BufferedReader(new FileReader(pipe));
-					// TODO make reading take 1000 ms so we can verify that the svn operation blocks
+					System.out.println("namedpipe-wait: Awaiting hook call at " + pipe);
 					String echoed = r.readLine();
-					System.out.println("namedpipe: Got line from pipe =" + echoed);
+					System.out.println("namedpipe-wait: Got line from pipe =" + echoed);
 					revs.add(Long.parseLong(echoed));
 					// we'd have to run indexing of the revision here, and make
 					// all of it sync
@@ -180,13 +180,13 @@ public class SvnTestIndexingTest {
 						}
 					}
 				}
-				System.out.println("namedpipe: Now we do a quite slow indexing here and the commit should not return until we're done");
+				System.out.println("namedpipe-wait: Now we do a quite slow indexing here and the commit should not return until we're done");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
-				System.out.println("namedpipe: Writing response to waiting (hopefully) hook");
+				System.out.println("namedpipe-wait: Writing response to waiting (hopefully) hook");
 				BufferedWriter w = null;
 				try {
 					w = new BufferedWriter(new FileWriter(pipe));
@@ -202,7 +202,7 @@ public class SvnTestIndexingTest {
 						}
 					}
 				}
-				System.out.println("namedpipe: Hook completed.");
+				System.out.println("namedpipe-wait: Hook completed.");
 			}
 		};
 	    t.start();
@@ -306,7 +306,7 @@ public class SvnTestIndexingTest {
 	
 	@Test
 	public void testMultipleRepositories() {
-		// For now all repositories must have the same configuration (handlers etc) becuase of the way that ReposIndexing is initialized
+		// For now all repositories must have the same configuration (handlers etc) because of the way that ReposIndexing is initialized
 		// Future functionality is one instance of ReposIndexing per repository, which should be quite easy to support
 	}
 	
