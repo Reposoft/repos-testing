@@ -14,6 +14,7 @@ import com.google.inject.Module;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemPathinfo;
+import se.repos.indexing.item.ItemProperties;
 import se.repos.lgr.Lgr;
 import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
@@ -51,7 +52,7 @@ public class TestIndexOptions {
 	protected void itemDefaultHandlers() {
 		// If we need to initialize handlers in a context that must be an earlier context than #getConfiguration
 		this.addHandler(new ItemPathinfo());
-		// TODO add the other handlers
+		this.addHandler(new ItemProperties());
 	}
 	
 	public TestIndexOptions addCore(String identifier, String resourcePattern) {
