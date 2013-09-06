@@ -50,6 +50,7 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 		container.load();
 	}
 	
+	@SuppressWarnings("unused")
 	private void initExperiments() {
 		// Everything below is a big mess because we're investigating solr instantiation		
 		
