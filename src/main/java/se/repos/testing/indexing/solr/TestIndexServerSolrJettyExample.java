@@ -165,7 +165,6 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 
 	@Override
 	protected void onCoreCreated(File coreFolder) {
-		logger.info("TODO load core {}", coreFolder.getName());
 		coreLoad(coreFolder.getName());
 	}
 

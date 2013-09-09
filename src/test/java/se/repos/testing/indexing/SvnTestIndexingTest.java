@@ -39,6 +39,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.indexing.item.ItemChecksum;
 import se.repos.testing.indexing.SvnTestIndexing;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -254,6 +255,7 @@ public class SvnTestIndexingTest {
 		
 		// first add cores
 		TestIndexOptions options = new TestIndexOptions().itemDefaults();
+		options.addHandler(new ItemChecksum()); // no dependencies so can be added now
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
 		// then getInstance
 		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
@@ -274,6 +276,8 @@ public class SvnTestIndexingTest {
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
 		assertEquals("Core by name should be the same", 1,
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
+		assertEquals("Should have indexed with the extra handler in repositem", 1,
+				indexing.getCore("repositem").query(new SolrQuery("checksum_sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")).getResults().getNumFound());
 	}
 
 	@Ignore // should be fixed but is low priority
