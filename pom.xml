@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>org.sonatype.sisu</groupId>
 			<artifactId>sisu-guice</artifactId>
-			<version>3.1.6</version>
+			<version>3.1.5</version>
 		</dependency>		
 		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
 		<dependency>
