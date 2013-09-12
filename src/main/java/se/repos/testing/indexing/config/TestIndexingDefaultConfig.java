@@ -9,12 +9,12 @@ import java.util.Set;
 import org.apache.solr.client.solrj.SolrServer;
 import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
+import se.repos.indexing.IndexingEventAware;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemContentsBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
 import se.repos.indexing.twophases.ItemContentsMemoryChoiceDeferred;
-import se.repos.indexing.twophases.ItemContentsMemorySizeLimit;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.TestIndexOptions;
@@ -59,6 +59,8 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 
 		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("blocking")).toInstance(handlers);
 		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("background")).toInstance(new HashSet<IndexingItemHandler>());
+		
+		bind(new TypeLiteral<Set<IndexingEventAware>>(){}).toInstance(new HashSet<IndexingEventAware>());
 		
 		// backend-svnkit
 		bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
