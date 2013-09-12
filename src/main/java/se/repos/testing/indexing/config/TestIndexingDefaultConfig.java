@@ -13,6 +13,7 @@ import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.ItemContentsBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
+import se.repos.indexing.twophases.ItemContentsMemoryChoiceDeferred;
 import se.repos.indexing.twophases.ItemContentsMemorySizeLimit;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
@@ -69,7 +70,8 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		// tweaks
 		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
 		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
-		bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
+		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
+		bind(ItemContentsBufferStrategy.class).to(ItemContentsMemoryChoiceDeferred.class);
 	}
 
 }
