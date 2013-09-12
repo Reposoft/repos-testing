@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import javax.inject.Provider;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
@@ -157,8 +159,8 @@ public class SvnTestIndexing {
 	}
 	
 	void syncHead(final CmsTestRepository repository, ReposIndexing indexing) {
-		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, SVNRepository>() {private static final long serialVersionUID = 1L;{
-			put(repository, repository.getSvnkit());
+		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, Provider<SVNRepository>>() {private static final long serialVersionUID = 1L;{
+			put(repository, repository.getSvnkitProvider());
 		}});
 		RepoRevision head = lookup.getYoungest(repository);
 		if (head.getNumber() > 0) {
