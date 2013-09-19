@@ -29,6 +29,7 @@ import com.google.inject.Module;
 
 import se.repos.indexing.ReposIndexing;
 import se.repos.search.SearchReposItem;
+import se.repos.testing.ReposTestBackend;
 import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
@@ -144,10 +145,22 @@ public class SvnTestIndexing {
 		Injector context = getContext(config);
 		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
 		
-		PostCommitInvocation postcommit = new ReposIndexingInvocation((CmsRepository) repo, indexing);
+		PostCommitInvocation postcommit = new ReposIndexingInvocation(indexing);
 		installHooks(repo, postcommit);
 		
 		syncHead(repo, indexing);
+		
+		return this;
+	}
+	
+	public SvnTestIndexing enable(ReposTestBackend backend) {
+		Module backendConfig = backend.getConfiguration();
+		Module config = options.getConfiguration(getCore("repositem"));
+		Injector context = getContext(backendConfig, config);
+		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
+		
+		PostCommitInvocation postcommit = new ReposIndexingInvocation(indexing);
+		backend.activate(context, postcommit);
 		
 		return this;
 	}
@@ -157,17 +170,22 @@ public class SvnTestIndexing {
 	}
 	
 	void syncHead(final CmsTestRepository repository, ReposIndexing indexing) {
-		CmsRepositoryLookup lookup = new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, Provider<SVNRepository>>() {private static final long serialVersionUID = 1L;{
-			put(repository, repository.getSvnkitProvider());
-		}});
+		CmsRepositoryLookup lookup = getRepositoryLookup(repository);
 		RepoRevision head = lookup.getYoungest(repository);
 		if (head.getNumber() > 0) {
 			logger.debug("Repository's revision is {} at enable, running initial sync", head);
 			indexing.sync(repository, head);
 		}
 	}
+
+	protected CmsRepositoryLookupSvnkit getRepositoryLookup(final CmsRepository repository) {
+		return new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, Provider<SVNRepository>>() {private static final long serialVersionUID = 1L;{
+			put(repository, ((CmsTestRepository) repository).getSvnkitProvider());
+		}});
+	}
 	
 	private void installHooks(CmsRepositoryInspection repository, final PostCommitInvocation postcommit) {
+		final CmsRepository hookRepository = repository;
 		File repositoryLocalPath = repository.getAdminPath();
 		File hooksdir = new File(repositoryLocalPath, "hooks");
 		if (!hooksdir.exists()) {
@@ -234,7 +252,7 @@ public class SvnTestIndexing {
 						}
 					}
 				}
-				postcommit.postCommit(revision);
+				postcommit.postCommit(hookRepository, revision);
 				logger.trace("Hook handler complete, writing confirmation to {}", pipe);
 				BufferedWriter w = null;
 				try {
@@ -272,41 +290,25 @@ public class SvnTestIndexing {
 	/**
 	 * Called in separate thread when a test repository got a commit.
 	 */
-	private interface PostCommitInvocation {
+	public interface PostCommitInvocation {
 		
-		void postCommit(Long revision); 
-		
-	}
-	
-	/* TODO how does runtime webapp solve rev->timestamp mapping?
-	private class RevisionDateProvider {
-		
-		public RevisionDateProvider(CmsTestRepository repository) {
-			// currently a dummy impl without the actual date
-		}
-		
-		RepoRevision getRevision(Long revisionNumber) {
-			
-		}
+		void postCommit(CmsRepository repository, Long revisionNumber);
 		
 	}
-	*/
 	
 	private class ReposIndexingInvocation implements PostCommitInvocation {
 		
-		private CmsRepository repository;
 		private ReposIndexing indexing;
 
-		ReposIndexingInvocation(CmsRepository repository, ReposIndexing indexing) {
-			this.repository = repository;
+		ReposIndexingInvocation(ReposIndexing indexing) {
 			this.indexing = indexing;
 		}
 
 		@Override
-		public void postCommit(Long revision) {
-			// TODO get real revision date
+		public void postCommit(CmsRepository repository, Long revisionNumber) {
+			// TODO get actual commit timestamp from backend
 			Date fake = new Date();
-			RepoRevision rr = new RepoRevision(revision, fake);
+			RepoRevision rr = new RepoRevision(revisionNumber, fake);
 			this.indexing.sync(repository, rr);
 		}
 		
