@@ -3,25 +3,12 @@
  */
 package se.repos.testing.indexing;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 
-import javax.inject.Provider;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmatesoft.svn.core.io.SVNRepository;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -30,20 +17,15 @@ import com.google.inject.Module;
 import se.repos.indexing.ReposIndexing;
 import se.repos.search.SearchReposItem;
 import se.repos.testing.ReposTestBackend;
-import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
+import se.repos.testing.cmstest.ReposTestBackendCmsTestingSvn;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
-import se.simonsoft.cms.item.inspection.CmsRepositoryInspection;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 
 public class SvnTestIndexing {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SvnTestIndexing.class);
-
-	// test may run as different user than svn so we might need to override umask
-	private static final String MKFIFO_OPTIONS = " --mode=0666";
 
 	private static SvnTestIndexing instance = null;
 	
@@ -141,16 +123,8 @@ public class SvnTestIndexing {
 	 * @return for chaining, suggest
 	 */
 	public SvnTestIndexing enable(CmsTestRepository repo) {
-		Module config = options.getConfiguration(getCore("repositem"));
-		Injector context = getContext(config);
-		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
-		
-		PostCommitInvocation postcommit = new ReposIndexingInvocation(indexing);
-		installHooks(repo, postcommit);
-		
-		syncHead(repo, indexing);
-		
-		return this;
+		ReposTestBackend backend = new ReposTestBackendCmsTestingSvn(repo);
+		return this.enable(backend);
 	}
 	
 	public SvnTestIndexing enable(ReposTestBackend backend) {
@@ -159,7 +133,7 @@ public class SvnTestIndexing {
 		Injector context = getContext(backendConfig, config);
 		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
 		
-		PostCommitInvocation postcommit = new ReposIndexingInvocation(indexing);
+		ReposTestBackend.HookInvocation postcommit = new ReposIndexingInvocation(indexing);
 		backend.activate(context, postcommit);
 		
 		return this;
@@ -169,134 +143,8 @@ public class SvnTestIndexing {
 		return Guice.createInjector(configuration);
 	}
 	
-	void syncHead(final CmsTestRepository repository, ReposIndexing indexing) {
-		CmsRepositoryLookup lookup = getRepositoryLookup(repository);
-		RepoRevision head = lookup.getYoungest(repository);
-		if (head.getNumber() > 0) {
-			logger.debug("Repository's revision is {} at enable, running initial sync", head);
-			indexing.sync(repository, head);
-		}
-	}
-
-	protected CmsRepositoryLookupSvnkit getRepositoryLookup(final CmsRepository repository) {
-		return new CmsRepositoryLookupSvnkit(new HashMap<CmsRepository, Provider<SVNRepository>>() {private static final long serialVersionUID = 1L;{
-			put(repository, ((CmsTestRepository) repository).getSvnkitProvider());
-		}});
-	}
 	
-	private void installHooks(CmsRepositoryInspection repository, final PostCommitInvocation postcommit) {
-		final CmsRepository hookRepository = repository;
-		File repositoryLocalPath = repository.getAdminPath();
-		File hooksdir = new File(repositoryLocalPath, "hooks");
-		if (!hooksdir.exists()) {
-			throw new IllegalArgumentException("No hooks folder found in repository path " + repositoryLocalPath);
-		}
-		if (!hooksdir.canWrite()) {
-			throw new IllegalArgumentException("Hooks folder not writable at " + hooksdir);
-		}
-		File postCommitSh = new File(hooksdir, "post-commit");
-		try {
-			postCommitSh.createNewFile();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to create post-commit script " + postCommitSh, e);
-		}
-		postCommitSh.setExecutable(true, false);
-		
-		// Set up named pipe file for communication
-		final File pipe = new File(hooksdir, "post-commit.pipe");
-		createPipe(pipe);
-		
-		// Set up hook that writes revision number to named pipe
-		try {
-			FileWriter hookbridge = new FileWriter(postCommitSh);
-			hookbridge.write("#!/bin/sh\n");
-			hookbridge.write("echo $2 > " + pipe.getAbsolutePath() + "\n");
-			hookbridge.write("cat " + pipe.getAbsolutePath() + " >&2\n");			
-			hookbridge.close();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to write to post-commit hook " + postCommitSh, e);
-		}
-		
-		// Listen to hook calls
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				while (true) {
-					logger.info("Starting hook wait at {}", pipe);
-					runRevision();
-					logger.info("Hook wait loop ended for {}", pipe);
-				}
-			}
-			
-			void runRevision() {
-				logger.trace("Awaiting next revision");
-				Long revision = null;
-				BufferedReader r = null;
-				try {
-					r = new BufferedReader(new FileReader(pipe));
-					String echoed = r.readLine();
-					try {
-						revision = Long.parseLong(echoed);
-					} catch (NumberFormatException e) {
-						logger.error("Invalid revision number from hook, got '" + echoed + "'", e);
-					}
-				} catch (IOException e) {
-					logger.error("Reading from hook pipe failed", e);
-					throw new RuntimeException("Aborting because of hook communication error at reading", e);
-				} finally {
-					if (r != null) {
-						try {
-							r.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				postcommit.postCommit(hookRepository, revision);
-				logger.trace("Hook handler complete, writing confirmation to {}", pipe);
-				BufferedWriter w = null;
-				try {
-					w = new BufferedWriter(new FileWriter(pipe));
-					w.write("Test indexing completed revision " + revision + "\n");
-				} catch (IOException e) {
-					logger.error("Writing to hook pipe failed", e);
-					throw new RuntimeException("Aborting because of hook communication error at confirmation", e);
-				} finally {
-					if (w != null) {
-						try {
-							w.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				logger.debug("Revision {} hook completed for {}", revision, pipe);
-			}
-		};
-	    t.start();
-	}
-
-	protected void createPipe(final File pipe) {
-		final String pipecmd = "mkfifo" + MKFIFO_OPTIONS;
-		try {
-			Process exec = Runtime.getRuntime().exec(pipecmd + " " + pipe.getAbsolutePath());
-			InputStream err = exec.getErrorStream();
-			IOUtils.copy(err, System.out);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to create named pipe using command line " + pipecmd, e);
-		}
-	}
-	
-	/**
-	 * Called in separate thread when a test repository got a commit.
-	 */
-	public interface PostCommitInvocation {
-		
-		void postCommit(CmsRepository repository, Long revisionNumber);
-		
-	}
-	
-	private class ReposIndexingInvocation implements PostCommitInvocation {
+	private class ReposIndexingInvocation implements ReposTestBackend.HookInvocation {
 		
 		private ReposIndexing indexing;
 
@@ -305,13 +153,15 @@ public class SvnTestIndexing {
 		}
 
 		@Override
-		public void postCommit(CmsRepository repository, Long revisionNumber) {
-			// TODO get actual commit timestamp from backend
-			Date fake = new Date();
-			RepoRevision rr = new RepoRevision(revisionNumber, fake);
-			this.indexing.sync(repository, rr);
+		public void postCommit(CmsRepository repository, RepoRevision revision) {
+			this.indexing.sync(repository, revision);
+		}
+
+		@Override
+		public void hasPreloaded(CmsRepository repository, RepoRevision revision) {
+			this.indexing.sync(repository, revision);
 		}
 		
-	}
+	}	
 	
 }

@@ -20,9 +20,6 @@ import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
 import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.repos.testing.indexing.solr.TestIndexServerSolrJettyExample;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
-import se.simonsoft.cms.item.inspection.CmsChangesetReader;
-import se.simonsoft.cms.item.inspection.CmsContentsReader;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 /**
@@ -68,12 +65,6 @@ public class TestIndexOptions {
 	
 	public boolean hasCore(String identifier) {
 		return cores.containsKey(identifier);
-	}
-
-	public void setBackend(CmsRepositoryLookup repositoryLookup, CmsChangesetReader changesetReader, CmsContentsReader contentsReader) {
-//		this.backendRepositoryLookup = repositoryLookup;
-//		this.backendChangesetReader = changesetReader;
-//		this.backendContentsReader = contentsReader;
 	}
 	
 	/**

@@ -40,7 +40,6 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
 import se.repos.indexing.item.ItemChecksum;
-import se.repos.testing.indexing.SvnTestIndexing;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;

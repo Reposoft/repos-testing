@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrServer;
-import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
 import se.repos.indexing.IndexingEventAware;
 import se.repos.indexing.ReposIndexing;
@@ -18,15 +17,6 @@ import se.repos.indexing.twophases.ItemContentsMemoryChoiceDeferred;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
 import se.repos.testing.indexing.TestIndexOptions;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsChangesetReaderSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsContentsReaderSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.CmsRepositoryLookupSvnkitLook;
-import se.simonsoft.cms.backend.svnkit.svnlook.CommitRevisionCache;
-import se.simonsoft.cms.backend.svnkit.svnlook.CommitRevisionCacheDefault;
-import se.simonsoft.cms.backend.svnkit.svnlook.SvnlookClientProviderStateless;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
-import se.simonsoft.cms.item.inspection.CmsChangesetReader;
-import se.simonsoft.cms.item.inspection.CmsContentsReader;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -66,17 +56,6 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
 		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
 		bind(ItemContentsBufferStrategy.class).to(ItemContentsMemoryChoiceDeferred.class);
-		
-		configureBackend();
 	}
-	
-	@Deprecated // use ReposTestBackend
-	protected void configureBackend() {
-		bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
-		bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
-		bind(CommitRevisionCache.class).to(CommitRevisionCacheDefault.class);
-		bind(CmsContentsReader.class).to(CmsContentsReaderSvnkitLook.class);
-		bind(CmsRepositoryLookup.class).annotatedWith(Names.named("inspection")).to(CmsRepositoryLookupSvnkitLook.class);
-	}	
 
 }
