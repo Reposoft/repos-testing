@@ -33,6 +33,7 @@ import se.simonsoft.cms.backend.svnkit.info.CmsRepositoryLookupSvnkit;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
+import se.simonsoft.cms.item.inspection.CmsRepositoryInspection;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 
@@ -141,13 +142,10 @@ public class SvnTestIndexing {
 	public SvnTestIndexing enable(CmsTestRepository repo) {
 		Module config = options.getConfiguration(getCore("repositem"));
 		Injector context = getContext(config);
-		//CmsRepositoryLookup lookup = context.getInstance(CmsRepositoryLookup.class); // TODO can use existing context if svnlook based lookup implements getYoungest
 		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
 		
-		PostCommitInvocation postcommit = new ReposIndexingInvocation(repo, indexing);
-		installHooks(repo.getAdminPath(), postcommit);
-		
-		// TODO add feature for keeping data after test, boolean deleteSolrDataAtTearDown = repo.isKeep();
+		PostCommitInvocation postcommit = new ReposIndexingInvocation((CmsRepository) repo, indexing);
+		installHooks(repo, postcommit);
 		
 		syncHead(repo, indexing);
 		
@@ -169,7 +167,8 @@ public class SvnTestIndexing {
 		}
 	}
 	
-	private void installHooks(File repositoryLocalPath, final PostCommitInvocation postcommit) {
+	private void installHooks(CmsRepositoryInspection repository, final PostCommitInvocation postcommit) {
+		File repositoryLocalPath = repository.getAdminPath();
 		File hooksdir = new File(repositoryLocalPath, "hooks");
 		if (!hooksdir.exists()) {
 			throw new IllegalArgumentException("No hooks folder found in repository path " + repositoryLocalPath);
@@ -295,10 +294,10 @@ public class SvnTestIndexing {
 	
 	private class ReposIndexingInvocation implements PostCommitInvocation {
 		
-		private CmsTestRepository repository;
+		private CmsRepository repository;
 		private ReposIndexing indexing;
 
-		ReposIndexingInvocation(CmsTestRepository repository, ReposIndexing indexing) {
+		ReposIndexingInvocation(CmsRepository repository, ReposIndexing indexing) {
 			this.repository = repository;
 			this.indexing = indexing;
 		}

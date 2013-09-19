@@ -62,18 +62,21 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		
 		bind(new TypeLiteral<Set<IndexingEventAware>>(){}).toInstance(new HashSet<IndexingEventAware>());
 		
-		// backend-svnkit
+		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
+		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
+		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
+		bind(ItemContentsBufferStrategy.class).to(ItemContentsMemoryChoiceDeferred.class);
+		
+		configureBackend();
+	}
+	
+	@Deprecated // use ReposTestBackend
+	protected void configureBackend() {
 		bind(SVNLookClient.class).toProvider(SvnlookClientProviderStateless.class);
 		bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkitLook.class);
 		bind(CommitRevisionCache.class).to(CommitRevisionCacheDefault.class);
 		bind(CmsContentsReader.class).to(CmsContentsReaderSvnkitLook.class);
 		bind(CmsRepositoryLookup.class).annotatedWith(Names.named("inspection")).to(CmsRepositoryLookupSvnkitLook.class);
-		
-		// tweaks
-		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
-		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
-		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
-		bind(ItemContentsBufferStrategy.class).to(ItemContentsMemoryChoiceDeferred.class);
-	}
+	}	
 
 }
