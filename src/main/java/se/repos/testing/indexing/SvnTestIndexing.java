@@ -128,9 +128,13 @@ public class SvnTestIndexing {
 	}
 	
 	public SvnTestIndexing enable(ReposTestBackend backend) {
+		return enable(backend, Guice.createInjector());
+	}
+	
+	public SvnTestIndexing enable(ReposTestBackend backend, Injector parent) {
 		Module backendConfig = backend.getConfiguration();
 		Module config = options.getConfiguration(getCore("repositem"));
-		Injector context = getContext(backendConfig, config);
+		Injector context = parent.createChildInjector(backendConfig, config);
 		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
 		
 		ReposTestBackend.HookInvocation postcommit = new ReposIndexingInvocation(indexing);
@@ -138,11 +142,6 @@ public class SvnTestIndexing {
 		
 		return this;
 	}
-	
-	protected Injector getContext(Module... configuration) {
-		return Guice.createInjector(configuration);
-	}
-	
 	
 	private class ReposIndexingInvocation implements ReposTestBackend.HookInvocation {
 		
