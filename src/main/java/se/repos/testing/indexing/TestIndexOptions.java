@@ -95,7 +95,7 @@ public class TestIndexOptions {
 	}
 	
 	/**
-	 * Must be done before {@link SvnTestIndexing#enable(CmsTestRepository)}
+	 * Must be done before {@link ReposTestIndexing#enable(CmsTestRepository)}
 	 * @param handler Configured handler
 	 * @return
 	 */
@@ -113,7 +113,7 @@ public class TestIndexOptions {
 	}
 	
 	/**
-	 * Will be used once from {@link SvnTestIndexing#enable(CmsTestRepository)} to get indexing an possibly nearby services.
+	 * Will be used once from {@link ReposTestIndexing#enable(CmsTestRepository)} to get indexing an possibly nearby services.
 	 * @param repositem
 	 * @return
 	 */

@@ -26,6 +26,8 @@ public interface TestIndexServer {
 	 */
 	SolrServer getCore(String identifier);
 	
+	String getCoreUrl(String identifier);	
+	
 	void destroy();
 	
 }

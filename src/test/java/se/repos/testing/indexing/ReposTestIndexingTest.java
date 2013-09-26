@@ -44,14 +44,14 @@ import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 
-public class SvnTestIndexingTest {
+public class ReposTestIndexingTest {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@After
 	public void tearDown() {
 		SvnTestSetup.getInstance().tearDown();
-		SvnTestIndexing.getInstance().tearDown(); // TODO make static and set up + tear down only once?
+		ReposTestIndexing.getInstance().tearDown(); // TODO make static and set up + tear down only once?
 	}
 	
 	@Test(timeout=100000)
@@ -63,7 +63,7 @@ public class SvnTestIndexingTest {
 		
 		// single core init with default configuration
 		logger.debug("Enabling indexing for {}", repo);
-		SolrServer solr = SvnTestIndexing.getInstance().enable(repo).getCore("repositem");
+		SolrServer solr = ReposTestIndexing.getInstance().enable(repo).getCore("repositem");
 		
 		// before any commits but after load+enable
 		QueryResponse result = solr.query(new SolrQuery("type:folder AND pathname:dir"));
@@ -257,7 +257,7 @@ public class SvnTestIndexingTest {
 		options.addHandler(new ItemChecksum()); // no dependencies so can be added now
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
 		// then getInstance
-		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
+		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);
 		// then add handlers
 		SolrServer extracore = indexing.getCore("dummycore");
 		options.addHandler(new DummyItemHandler(extracore));
@@ -296,7 +296,7 @@ public class SvnTestIndexingTest {
 			}
 		});
 		
-		SvnTestIndexing indexing = SvnTestIndexing.getInstance(options);
+		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);
 		indexing.enable(repo);
 		
 		SvnImport im = repo.getSvnkitOp().createImport();

@@ -175,7 +175,12 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 
 	@Override
 	public SolrServer getCore(String identifier) {
-		return new HttpSolrServer(url + identifier);
+		return new HttpSolrServer(getCoreUrl(identifier));
+	}
+	
+	@Override
+	public String getCoreUrl(String identifier) {
+		return url + identifier;
 	}
 
 	@Override

@@ -40,6 +40,11 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 	}
 
 	@Override
+	public String getCoreUrl(String identifier) {
+		throw new UnsupportedOperationException("Embedded Solr server does not support http calls, use Example server instead");
+	}
+	
+	@Override
 	public void destroy() {
 		super.destroy(instanceDir);
 		instanceDir = null;

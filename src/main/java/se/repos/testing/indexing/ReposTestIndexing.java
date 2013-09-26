@@ -23,11 +23,11 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 
-public class SvnTestIndexing {
+public class ReposTestIndexing {
 	
-	private static final Logger logger = LoggerFactory.getLogger(SvnTestIndexing.class);
+	private static final Logger logger = LoggerFactory.getLogger(ReposTestIndexing.class);
 
-	private static SvnTestIndexing instance = null;
+	private static ReposTestIndexing instance = null;
 	
 	/**
 	 * State in current test, not thread safe of course.
@@ -40,7 +40,7 @@ public class SvnTestIndexing {
 	/**
 	 * Enforce singleton, makes optimizations possible.
 	 */
-	private SvnTestIndexing() {
+	private ReposTestIndexing() {
 	}
 	
 	/**
@@ -48,13 +48,13 @@ public class SvnTestIndexing {
 	 * The instances are not threadsafe however, so tests should run in sequence.
 	 * @return
 	 */
-	public static SvnTestIndexing getInstance() {
+	public static ReposTestIndexing getInstance() {
 		return getInstance(new TestIndexOptions().itemDefaults());
 	}
 	
-	public static SvnTestIndexing getInstance(TestIndexOptions options) {
+	public static ReposTestIndexing getInstance(TestIndexOptions options) {
 		if (instance == null) {
-			instance = new SvnTestIndexing();
+			instance = new ReposTestIndexing();
 			instance.beforeTest(options); // we assume that getInstance is called before each test	
 		}
 		return instance;
@@ -109,6 +109,10 @@ public class SvnTestIndexing {
 		return this.server.getCore(identifier);
 	}
 	
+	public String getCoreUrl(String identifier) {
+		return this.server.getCoreUrl(identifier);
+	}
+	
 	/**
 	 * @return Search abstraction for basic queries in the "repositem" core.
 	 */
@@ -122,16 +126,16 @@ public class SvnTestIndexing {
 	 * @param repo A repository
 	 * @return for chaining, suggest
 	 */
-	public SvnTestIndexing enable(CmsTestRepository repo) {
+	public ReposTestIndexing enable(CmsTestRepository repo) {
 		ReposTestBackend backend = new ReposTestBackendCmsTestingSvn(repo);
 		return this.enable(backend);
 	}
 	
-	public SvnTestIndexing enable(ReposTestBackend backend) {
+	public ReposTestIndexing enable(ReposTestBackend backend) {
 		return enable(backend, Guice.createInjector());
 	}
 	
-	public SvnTestIndexing enable(ReposTestBackend backend, Injector parent) {
+	public ReposTestIndexing enable(ReposTestBackend backend, Injector parent) {
 		Module backendConfig = backend.getConfiguration();
 		Module config = options.getConfiguration(getCore("repositem"));
 		Injector context = parent.createChildInjector(backendConfig, config);
