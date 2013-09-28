@@ -15,7 +15,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 
 import se.repos.indexing.ReposIndexing;
-import se.repos.search.SearchReposItem;
+import se.repos.search.item.SearchReposItem;
 import se.repos.testing.ReposTestBackend;
 import se.repos.testing.cmstest.ReposTestBackendCmsTestingSvn;
 import se.simonsoft.cms.item.CmsRepository;
