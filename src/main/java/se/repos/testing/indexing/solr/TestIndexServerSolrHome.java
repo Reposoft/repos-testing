@@ -78,7 +78,8 @@ public abstract class TestIndexServerSolrHome {
 	
 	void destroy(File instanceDir) {
 		if (instanceDir == null) {
-			throw new IllegalArgumentException("instanceDir is null");
+			logger.debug("Cleanup skipped because instanceDir is null");
+			return;
 		}
 		if (instanceDir.exists()) {
 			try {
