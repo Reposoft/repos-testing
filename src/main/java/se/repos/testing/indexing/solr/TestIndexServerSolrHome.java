@@ -77,10 +77,17 @@ public abstract class TestIndexServerSolrHome {
 	}
 	
 	void destroy(File instanceDir) {
-		try {
-			FileUtils.deleteDirectory(instanceDir);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		if (instanceDir == null) {
+			throw new IllegalArgumentException("instanceDir is null");
+		}
+		if (instanceDir.exists()) {
+			try {
+				FileUtils.deleteDirectory(instanceDir);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			logger.debug("Cleanup not needed because instanceDir " + instanceDir + " does not exist");
 		}
 	}
 	
@@ -99,6 +106,13 @@ public abstract class TestIndexServerSolrHome {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		if (resources == null) {
+			throw new IllegalArgumentException("Failed to resolve resources with pattern " + pattern);
+		}
+		if (resources.length == 0) {
+			throw new IllegalArgumentException("No resources found in extraction pattern " + pattern);
+		}
+		logger.debug("Resource pattern {} matched {}", pattern, resources);
 		SortedMap<String, Resource> extract = new TreeMap<String, Resource>();
 		for (Resource r : resources) {
 			String full = r.getDescription();

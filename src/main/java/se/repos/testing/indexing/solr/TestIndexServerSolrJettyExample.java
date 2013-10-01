@@ -123,13 +123,12 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 		try {
 			restClientJavaNet.get(restUrl.p(), response);
 		} catch (HttpStatusError e) {
-			throw new RuntimeException("Core reload failed using URL " + restUrl + "\n" + response.getBody(), e);
+			logger.error("Core unload failed using URL " + restUrl + " " + response.getBody(), e);
+			// see if we can proceed without unload
+			//throw new RuntimeException("Core reload failed using URL " + restUrl + " " + response.getBody(), e);
 		} catch (IOException e) {
-			throw new RuntimeException("Core reload failed using URL " + restUrl + "\n" + response.getBody(), e);
+			throw new RuntimeException("Solr communication failed at core unload using URL " + restUrl + " " + response.getBody(), e);
 		}
-		if (response.getHeaders().getStatus() != 200) {
-			throw new AssertionError("Failed to create test core " + coreName + "\n" + response.getBody());
-		};		
 	}
 	
 	void coreLoad(String coreName) {
@@ -140,12 +139,12 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 		try {
 			restClientJavaNet.get(restUrl.p(), response);
 		} catch (HttpStatusError e) {
-			throw new RuntimeException("Core reload failed using URL " + restUrl + "\n" + response.getBody(), e);
+			throw new RuntimeException("Core reload failed using URL " + restUrl + " " + response.getBody(), e);
 		} catch (IOException e) {
-			throw new RuntimeException("Core reload failed using URL " + restUrl + "\n" + response.getBody(), e);
+			throw new RuntimeException("Core reload failed using URL " + restUrl + " " + response.getBody(), e);
 		}
 		if (response.getHeaders().getStatus() != 200) {
-			throw new AssertionError("Failed to create test core " + coreName + "\n" + response.getBody());
+			throw new AssertionError("Failed to create test core " + coreName + " " + response.getBody());
 		};
 	}
 	

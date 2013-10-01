@@ -278,6 +278,27 @@ public class ReposTestIndexingTest {
 		assertEquals("Should have indexed with the extra handler in repositem", 1,
 				indexing.getCore("repositem").query(new SolrQuery("checksum_sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")).getResults().getNumFound());
 	}
+	
+	/**
+	 * Catch 22: Tests that use additional cores need the SolrServer instance for dependency injection into services,
+	 * but don't have an instance of SvnTestIndexing until they can create their handler - also dependency injection.
+	 * @throws Exception 
+	 */
+	@Test(timeout=100000)
+	public void testCoreInClasspathNotFound() throws SolrServerException, Exception {
+		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
+		
+		// first add cores
+		TestIndexOptions options = new TestIndexOptions().itemDefaults();
+		options.addCore("dummycore", "se/repos/indexing/testing/solr/notfound/**");
+		
+		try {
+			ReposTestIndexing.getInstance(options).enable(repo);
+			fail("Should throw useful exception");
+		} catch (Exception e) {
+			assertEquals("Got " + e, "No resources found in extraction pattern se/repos/indexing/testing/solr/notfound/**", e.getMessage());
+		}
+	}
 
 	@Ignore // should be fixed but is low priority
 	@Test(expected=RuntimeException.class)
