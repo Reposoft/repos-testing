@@ -116,7 +116,7 @@ public abstract class TestIndexServerSolrHome {
 		logger.debug("Resource pattern {} matched {}", pattern, resources);
 		SortedMap<String, Resource> extract = new TreeMap<String, Resource>();
 		for (Resource r : resources) {
-			String full = r.getDescription();
+            String full = r.getDescription().replace("\\", "/");
 			int relpos = full.indexOf(path);
 			if (relpos < 0) {
 				throw new IllegalStateException("Expected path not found in extracted resource " + r);
@@ -126,6 +126,11 @@ public abstract class TestIndexServerSolrHome {
 		}
 		for (String rel : extract.keySet()) {
 			File outfile = new File(destination, rel);
+
+            if (outfile.getParentFile() != null) {
+                outfile.getParentFile().mkdirs();
+            }
+ 
 			if (extract.get(rel).toString().endsWith("/]")) { // detect folder entries
 				if (!outfile.exists() && !outfile.mkdir()) {
 					logger.warn("Failed to create target folder {} ({})", outfile, extract.get(rel));
@@ -133,39 +138,40 @@ public abstract class TestIndexServerSolrHome {
 				logger.trace("Created folder {} ({})", rel, extract.get(rel));
 				continue;
 			}
-			logger.trace("Extracting file {} ({})", rel, extract.get(rel));
-			InputStream in;
-			try {
-				in = extract.get(rel).getInputStream();
-			} catch (IOException e) {
-				if (e.getMessage().contains("(Is a directory")) {
-					outfile.mkdir();
-					continue;
+            if (!extract.get(rel).toString().replace("\\", "/").endsWith("/]") && rel.contains(".")) {
+				logger.trace("Extracting file {} ({})", rel, extract.get(rel));
+				InputStream in;
+				try {
+					in = extract.get(rel).getInputStream();
+				} catch (IOException e) {
+					if (e.getMessage().contains("(Is a directory")) {
+						outfile.mkdir();
+						continue;
+					}
+					throw new RuntimeException(e);
 				}
-				throw new RuntimeException(e);
+				FileOutputStream out;
+				try {
+					out = new FileOutputStream(outfile);
+				} catch (FileNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					IOUtils.copy(in, out);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					in.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					out.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
-			FileOutputStream out;
-			try {
-				out = new FileOutputStream(outfile);
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				IOUtils.copy(in, out);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				in.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				out.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}	
-	
+		}	
+	}
 }
