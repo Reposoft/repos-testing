@@ -38,6 +38,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	public static final String[] TRY_PATHS = {
 		"/home/cmsadmin/testsolr/example/solr",
 		"/opt/testsolr/example/solr",
+		System.getProperty("user.home") + "/Downloads/solr-4.5.0/example/solr",
 		System.getProperty("user.home") + "/Downloads/solr-4.4.0/example/solr"
 	};
 	

@@ -56,13 +56,14 @@ public abstract class TestIndexServerSolrHome {
 		File instanceDir = createHome();
 		Map<String, String> cores = options.getCores();
 		for (String c : cores.keySet()) {
-			File coreFolder = new File(instanceDir, c);
+			File coreFolder = new File(instanceDir, c + "/");
 			if (coreFolder.exists()) {
+				logger.debug("Found existing core folder {}", coreFolder);
 				onCoreExisting(coreFolder);
 			}
 			coreFolder.mkdir();
 			extractResourceFolder(cores.get(c), coreFolder);
-			logger.debug("Test server core {} added", c);
+			logger.debug("Test server core {} added at {}", c, coreFolder);
 			onCoreCreated(coreFolder);
 		}
 		return instanceDir;
@@ -126,52 +127,43 @@ public abstract class TestIndexServerSolrHome {
 		}
 		for (String rel : extract.keySet()) {
 			File outfile = new File(destination, rel);
-
-            if (outfile.getParentFile() != null) {
+            /* needed? if (outfile.getParentFile() != null) {
                 outfile.getParentFile().mkdirs();
-            }
- 
-			if (extract.get(rel).toString().endsWith("/]")) { // detect folder entries
-				if (!outfile.exists() && !outfile.mkdir()) {
-					logger.warn("Failed to create target folder {} ({})", outfile, extract.get(rel));
+            } */
+			InputStream in;
+			try {
+				in = extract.get(rel).getInputStream();
+			} catch (IOException e) {
+				if (e.getMessage().contains("(Is a directory")) {
+					logger.debug("Creating folder {} at {}", extract.get(rel).getDescription(), outfile);
+					outfile.mkdir();
+					continue;
 				}
-				logger.trace("Created folder {} ({})", rel, extract.get(rel));
-				continue;
+				throw new RuntimeException(e);
 			}
-            if (!extract.get(rel).toString().replace("\\", "/").endsWith("/]") && rel.contains(".")) {
-				logger.trace("Extracting file {} ({})", rel, extract.get(rel));
-				InputStream in;
-				try {
-					in = extract.get(rel).getInputStream();
-				} catch (IOException e) {
-					if (e.getMessage().contains("(Is a directory")) {
-						outfile.mkdir();
-						continue;
-					}
-					throw new RuntimeException(e);
-				}
-				FileOutputStream out;
-				try {
-					out = new FileOutputStream(outfile);
-				} catch (FileNotFoundException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					IOUtils.copy(in, out);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					in.close();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					out.close();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+			FileOutputStream out;
+			try {
+				out = new FileOutputStream(outfile);
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e);
 			}
-		}	
+			try {
+				IOUtils.copy(in, out);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				in.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				out.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			logger.debug("Extracted file {} ({}) to {}", rel, extract.get(rel), outfile);
+		}
+		boolean b = true;
 	}
 }
