@@ -39,7 +39,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.item.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
-import se.repos.indexing.item.ItemChecksum;
+import se.repos.indexing.item.HandlerChecksum;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
@@ -254,7 +254,7 @@ public class ReposTestIndexingTest {
 		
 		// first add cores
 		TestIndexOptions options = new TestIndexOptions().itemDefaults();
-		options.addHandler(new ItemChecksum()); // no dependencies so can be added now
+		options.addHandler(new HandlerChecksum()); // no dependencies so can be added now
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
 		// then getInstance
 		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);

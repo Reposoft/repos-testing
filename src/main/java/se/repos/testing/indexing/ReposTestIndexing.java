@@ -15,7 +15,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 
 import se.repos.indexing.ReposIndexing;
-import se.repos.search.item.SearchReposItem;
 import se.repos.testing.ReposTestBackend;
 import se.repos.testing.cmstest.ReposTestBackendCmsTestingSvn;
 import se.simonsoft.cms.item.CmsRepository;
@@ -111,13 +110,6 @@ public class ReposTestIndexing {
 	
 	public String getCoreUrl(String identifier) {
 		return this.server.getCoreUrl(identifier);
-	}
-	
-	/**
-	 * @return Search abstraction for basic queries in the "repositem" core.
-	 */
-	public SearchReposItem getItem() {
-		throw new UnsupportedOperationException("not implemented"); // needs a SearchReposItem impl
 	}
 	
 	/**
