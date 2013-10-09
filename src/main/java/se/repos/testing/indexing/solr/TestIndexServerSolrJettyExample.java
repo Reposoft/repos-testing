@@ -134,6 +134,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	
 	void coreLoad(String coreName) {
 		// https://wiki.apache.org/solr/CoreAdmin
+		
 		RestURL restUrl = new RestURL(url + "admin/cores?action=CREATE&name=" + coreName);
 		RestClient restClientJavaNet = new RestClientJavaNet(restUrl.r(), null);
 		RestResponseBean response = new RestResponseBean();
@@ -165,6 +166,12 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 
 	@Override
 	protected void onCoreCreated(File coreFolder) {
+		File props = new File(coreFolder, "core.properties");
+		if (props.delete()) { // Solr 4.5.0 won't create a core when this exists
+			logger.debug("Deleted core.propeties as preparatoin for create");
+		} else {
+			throw new RuntimeException("Failed to delete " + props);
+		}
 		coreLoad(coreFolder.getName());
 	}
 
