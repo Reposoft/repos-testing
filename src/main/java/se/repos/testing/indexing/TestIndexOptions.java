@@ -12,7 +12,7 @@ import org.apache.solr.client.solrj.SolrServer;
 
 import com.google.inject.Module;
 
-import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.item.HandlerPathinfo;
 import se.repos.indexing.item.HandlerProperties;
 import se.repos.lgr.Lgr;

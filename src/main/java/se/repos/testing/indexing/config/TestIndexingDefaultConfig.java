@@ -8,11 +8,13 @@ import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrServer;
 
-import se.repos.indexing.IndexingEventAware;
+import se.repos.indexing.IdStrategy;
+import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.ReposIndexing;
-import se.repos.indexing.item.IndexingItemHandler;
+import se.repos.indexing.item.IdStrategyDefault;
 import se.repos.indexing.item.ItemContentBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
+import se.repos.indexing.twophases.IndexingEventAware;
 import se.repos.indexing.twophases.ItemContentsMemoryChoiceDeferred;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
@@ -52,6 +54,7 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		
 		bind(new TypeLiteral<Set<IndexingEventAware>>(){}).toInstance(new HashSet<IndexingEventAware>());
 		
+		bind(IdStrategy.class).to(IdStrategyDefault.class);
 		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
 		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
 		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
