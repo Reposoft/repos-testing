@@ -4,7 +4,6 @@
 package se.repos.testing.indexing.solr;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -126,43 +125,27 @@ public abstract class TestIndexServerSolrHome {
 			extract.put(rel, r);
 		}
 		for (String rel : extract.keySet()) {
-			File outfile = new File(destination, rel);
-            /* needed? if (outfile.getParentFile() != null) {
-                outfile.getParentFile().mkdirs();
-            } */
-			InputStream in;
+			Resource r = extract.get(rel);
 			try {
-				in = extract.get(rel).getInputStream();
-			} catch (IOException e) {
-				if (e.getMessage().contains("(Is a directory")) {
-					logger.debug("Creating folder {} at {}", extract.get(rel).getDescription(), outfile);
-					outfile.mkdir();
-					continue;
-				}
-				throw new RuntimeException(e);
-			}
-			FileOutputStream out;
-			try {
-				out = new FileOutputStream(outfile);
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-			try {
+				File outfile = new File(destination, rel);
+				// don't assume that entries come in order
+	            if (outfile.getParentFile() != null) {
+	                outfile.getParentFile().mkdirs();
+	            }
+	            // try to detect folders
+	            if (r.getFile() != null && r.getFile().isDirectory()) {
+	            	outfile.mkdir();
+	            	continue;
+	            }
+				InputStream in = r.getInputStream();
+				FileOutputStream out = new FileOutputStream(outfile);
 				IOUtils.copy(in, out);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			try {
 				in.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			try {
 				out.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+				logger.debug("Extracted file {} ({}) to {}", rel, extract.get(rel), outfile);
+			} catch (Exception e) {
+				logger.warn("Failed to extract {} at {}", r.getDescription(), rel, e);
 			}
-			logger.debug("Extracted file {} ({}) to {}", rel, extract.get(rel), outfile);
 		}
 		boolean b = true;
 	}

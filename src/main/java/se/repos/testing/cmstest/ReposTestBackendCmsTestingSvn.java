@@ -25,7 +25,6 @@ import se.repos.testing.ReposTestBackend;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
-import se.simonsoft.cms.item.inspection.CmsRepositoryInspection;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
@@ -62,7 +61,7 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 		}
 	}
 	
-	private void installHooks(CmsRepositoryInspection repository, final HookInvocationLookupProxy hooks) {
+	private void installHooks(CmsTestRepository repository, final HookInvocationLookupProxy hooks) {
 		File repositoryLocalPath = repository.getAdminPath();
 		File hooksdir = new File(repositoryLocalPath, "hooks");
 		if (!hooksdir.exists()) {
