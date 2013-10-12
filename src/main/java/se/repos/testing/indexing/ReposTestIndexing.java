@@ -15,6 +15,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 
 import se.repos.indexing.ReposIndexing;
+import se.repos.indexing.scheduling.IndexingSchedule;
 import se.repos.testing.ReposTestBackend;
 import se.repos.testing.cmstest.ReposTestBackendCmsTestingSvn;
 import se.simonsoft.cms.item.CmsRepository;
@@ -131,6 +132,9 @@ public class ReposTestIndexing {
 		Module backendConfig = backend.getConfiguration();
 		Module config = options.getConfiguration(getCore("repositem"));
 		Injector context = parent.createChildInjector(backendConfig, config);
+		
+		context.getInstance(IndexingSchedule.class).start();
+		
 		ReposIndexing indexing = context.getInstance(ReposIndexing.class);
 		
 		ReposTestBackend.HookInvocation postcommit = new ReposIndexingInvocation(indexing);
@@ -149,12 +153,12 @@ public class ReposTestIndexing {
 
 		@Override
 		public void postCommit(CmsRepository repository, RepoRevision revision) {
-			this.indexing.sync(repository, revision);
+			this.indexing.sync(revision);
 		}
 
 		@Override
 		public void hasPreloaded(CmsRepository repository, RepoRevision revision) {
-			this.indexing.sync(repository, revision);
+			this.indexing.sync(revision);
 		}
 		
 	}	

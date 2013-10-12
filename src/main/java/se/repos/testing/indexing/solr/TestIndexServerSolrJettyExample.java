@@ -34,6 +34,8 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	 * After designing this class I found in https://wiki.apache.org/solr/CoreAdmin that cores can be created from any path,
 	 * so we could probably use the setup that base class provides, and just use MOVE if a core of the same name already exists.
 	 * We could even use SWAP back and forth, so that the original core is restored after test.
+	 * 
+	 * We can also specify, at CREATE, which config and schema to use so we won't need to extract core folders.
 	 */
 	public static final String[] TRY_PATHS = {
 		"/home/cmsadmin/testsolr/example/solr",

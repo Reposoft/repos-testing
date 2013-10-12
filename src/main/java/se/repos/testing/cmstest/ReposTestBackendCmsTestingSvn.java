@@ -22,11 +22,15 @@ import com.google.inject.Module;
 import com.google.inject.name.Names;
 
 import se.repos.testing.ReposTestBackend;
+import se.simonsoft.cms.backend.svnkit.CmsRepositorySvn;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
+/**
+ * Actual svn repository with cms-backend-svnkit as backend.
+ */
 public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -34,15 +38,19 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	// test may run as different user than svn so we might need to override umask
 	private static final String MKFIFO_OPTIONS = " --mode=0666";	
 	
-	private CmsTestRepository repository;
+	private CmsRepositorySvn repository;
 
 	public ReposTestBackendCmsTestingSvn(CmsTestRepository repo) {
-		this.repository = repo;
+		this(CmsRepositorySvn.fromTesting(repo));
 	}
+
+	public ReposTestBackendCmsTestingSvn(CmsRepositorySvn repo) {
+		this.repository = repo;
+	}	
 	
 	@Override
 	public Module getConfiguration() {
-		return new SingleRepoSvnkitIndexingModule();
+		return new SingleRepoSvnkitIndexingModule(repository);
 	}
 
 	@Override
@@ -50,10 +58,10 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 		CmsRepositoryLookup lookup = context.getInstance(Key.get(CmsRepositoryLookup.class, Names.named("inspection")));
 		HookInvocationLookupProxy hooks = new HookInvocationLookupProxy(repository, lookup, postcommit);
 		installHooks(repository, hooks);
-		syncHead(lookup, hooks);
+		syncHead(repository, lookup, hooks);
 	}
 
-	void syncHead(CmsRepositoryLookup lookup, HookInvocationLookupProxy hooks) {
+	void syncHead(CmsRepository repository, CmsRepositoryLookup lookup, HookInvocationLookupProxy hooks) {
 		RepoRevision head = lookup.getYoungest(repository);
 		if (head.getNumber() > 0) {
 			logger.debug("Repository's revision is {} at enable", head);
@@ -61,7 +69,7 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 		}
 	}
 	
-	private void installHooks(CmsTestRepository repository, final HookInvocationLookupProxy hooks) {
+	private void installHooks(CmsRepositorySvn repository, final HookInvocationLookupProxy hooks) {
 		File repositoryLocalPath = repository.getAdminPath();
 		File hooksdir = new File(repositoryLocalPath, "hooks");
 		if (!hooksdir.exists()) {

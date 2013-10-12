@@ -9,12 +9,17 @@ import java.util.Set;
 import org.apache.solr.client.solrj.SolrServer;
 
 import se.repos.indexing.IdStrategy;
+import se.repos.indexing.IndexingHandlers;
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IdStrategyDefault;
 import se.repos.indexing.item.ItemContentBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
+import se.repos.indexing.repository.ReposIndexingPerRepository;
+import se.repos.indexing.scheduling.IndexingSchedule;
+import se.repos.indexing.scheduling.IndexingScheduleBlockingOnly;
 import se.repos.indexing.twophases.IndexingEventAware;
+import se.repos.indexing.twophases.ItemContentsMemory;
 import se.repos.indexing.twophases.ItemContentsMemoryChoiceDeferred;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 import se.repos.indexing.twophases.ReposIndexingImpl;
@@ -22,6 +27,7 @@ import se.repos.testing.indexing.TestIndexOptions;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
 /**
@@ -47,18 +53,17 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		bind(SolrServer.class).annotatedWith(Names.named("repositem"))
 			.toInstance(repositem);
 		
-		bind(ReposIndexing.class).to(ReposIndexingImpl.class);
-
-		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("blocking")).toInstance(handlers);
-		bind(new TypeLiteral<Set<IndexingItemHandler>>(){}).annotatedWith(Names.named("background")).toInstance(new HashSet<IndexingItemHandler>());
+		bind(IndexingSchedule.class).to(IndexingScheduleBlockingOnly.class);
 		
-		bind(new TypeLiteral<Set<IndexingEventAware>>(){}).toInstance(new HashSet<IndexingEventAware>());
+		Multibinder<IndexingItemHandler> handlers = Multibinder.newSetBinder(binder(), IndexingItemHandler.class);
+		IndexingHandlers.configureFirst(handlers);
+		IndexingHandlers.configureLast(handlers);
+		
+		bind(ReposIndexing.class).to(ReposIndexingPerRepository.class);
 		
 		bind(IdStrategy.class).to(IdStrategyDefault.class);
 		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
-		bind(Integer.class).annotatedWith(Names.named("indexingFilesizeInMemoryLimitBytes")).toInstance(100000); // optimize for test run performance, but we should test the file cache also
-		//bind(ItemContentsBufferStrategy.class).to(ItemContentsMemorySizeLimit.class);		
-		bind(ItemContentBufferStrategy.class).to(ItemContentsMemoryChoiceDeferred.class);
+		bind(ItemContentBufferStrategy.class).to(ItemContentsMemory.class);
 	}
 
 }
