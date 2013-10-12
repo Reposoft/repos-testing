@@ -41,9 +41,12 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 
 	/**
 	 * @param solrRepositemCore
-	 * @param handlers separately configured handlers (if the default handlers start to have dependencies we must accept classes too)
+	 * @param handlers extra handlers, configured separately
 	 */
-	public TestIndexingDefaultConfig(SolrServer solrRepositemCore, Set<IndexingItemHandler> handlers) {
+	public TestIndexingDefaultConfig(SolrServer solrRepositemCore, Set<IndexingItemHandler> handlers, boolean includeItemDefaultHandlers) {
+		if (!includeItemDefaultHandlers) {
+			throw new UnsupportedOperationException("Support for running indexing without the default handlers has not been implemented. Enable itemDefaults in options.");
+		}
 		this.repositem = solrRepositemCore;
 		this.handlers = handlers;
 	}
@@ -55,9 +58,12 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		
 		bind(IndexingSchedule.class).to(IndexingScheduleBlockingOnly.class);
 		
-		Multibinder<IndexingItemHandler> handlers = Multibinder.newSetBinder(binder(), IndexingItemHandler.class);
-		IndexingHandlers.configureFirst(handlers);
-		IndexingHandlers.configureLast(handlers);
+		Multibinder<IndexingItemHandler> handlerconf = Multibinder.newSetBinder(binder(), IndexingItemHandler.class);
+		IndexingHandlers.configureFirst(handlerconf);
+		for (IndexingItemHandler h : handlers) {
+			handlerconf.addBinding().toInstance(h);
+		}
+		IndexingHandlers.configureLast(handlerconf);
 		
 		bind(ReposIndexing.class).to(ReposIndexingPerRepository.class);
 		

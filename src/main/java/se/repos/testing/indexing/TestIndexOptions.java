@@ -26,11 +26,13 @@ import se.simonsoft.cms.testing.svn.CmsTestRepository;
  * Carries no state, can be reused between tests if desired.
  */
 public class TestIndexOptions {
-
+	
 	private static final Lgr logger = LgrFactory.getLogger();
 	
 	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>();
 
+	private boolean itemDefaultHandlers = false;
+	
 	private Map<String, String> cores = new HashMap<String, String>();
 	
 	private Map<String, String> aliases = new HashMap<String, String>();
@@ -50,9 +52,7 @@ public class TestIndexOptions {
 	}
 
 	protected void itemDefaultHandlers() {
-		// If we need to initialize handlers in a context that must be an earlier context than #getConfiguration
-		this.addHandler(new HandlerPathinfo());
-		this.addHandler(new HandlerProperties());
+		itemDefaultHandlers = true; // we don't configure handlers here anymore because the chain requires a config module
 	}
 	
 	public TestIndexOptions addCore(String identifier, String resourcePattern) {
@@ -118,7 +118,7 @@ public class TestIndexOptions {
 	 * @return
 	 */
 	protected Module getConfiguration(SolrServer repositem) {
-		return new TestIndexingDefaultConfig(repositem, getHandlers());
+		return new TestIndexingDefaultConfig(repositem, getHandlers(), itemDefaultHandlers);
 	}
 
 	/**
