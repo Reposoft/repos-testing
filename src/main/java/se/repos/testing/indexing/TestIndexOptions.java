@@ -13,8 +13,6 @@ import org.apache.solr.client.solrj.SolrServer;
 import com.google.inject.Module;
 
 import se.repos.indexing.IndexingItemHandler;
-import se.repos.indexing.item.HandlerPathinfo;
-import se.repos.indexing.item.HandlerProperties;
 import se.repos.lgr.Lgr;
 import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
@@ -105,7 +103,7 @@ public class TestIndexOptions {
 		}
 		this.handlers.add(handler);
 		return this;
-	}	
+	}
 	
 	public Set<IndexingItemHandler> getHandlers() {
 		handlersUsed = true;

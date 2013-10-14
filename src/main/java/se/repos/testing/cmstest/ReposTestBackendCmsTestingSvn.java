@@ -136,25 +136,28 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 						}
 					}
 				}
-				hooks.postCommit(revision);
-				logger.trace("Hook handler complete, writing confirmation to {}", pipe);
-				BufferedWriter w = null;
 				try {
-					w = new BufferedWriter(new FileWriter(pipe));
-					w.write("Test indexing completed revision " + revision + "\n");
-				} catch (IOException e) {
-					logger.error("Writing to hook pipe failed", e);
-					throw new RuntimeException("Aborting because of hook communication error at confirmation", e);
+					hooks.postCommit(revision);
+					logger.trace("Hook handler complete, writing confirmation to {}", pipe);
 				} finally {
-					if (w != null) {
-						try {
-							w.close();
-						} catch (IOException e) {
-							e.printStackTrace();
+					BufferedWriter w = null;
+					try {
+						w = new BufferedWriter(new FileWriter(pipe));
+						w.write("Test indexing completed revision " + revision + "\n");
+					} catch (IOException e) {
+						logger.error("Writing to hook pipe failed", e);
+						throw new RuntimeException("Aborting because of hook communication error at confirmation", e);
+					} finally {
+						if (w != null) {
+							try {
+								w.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
 					}
+					logger.debug("Revision {} hook completed for {}", revision, pipe);
 				}
-				logger.debug("Revision {} hook completed for {}", revision, pipe);
 			}
 		};
 	    t.start();

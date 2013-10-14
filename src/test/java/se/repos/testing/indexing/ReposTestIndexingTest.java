@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc2.SvnCopySource;
 import org.tmatesoft.svn.core.wc2.SvnImport;
@@ -39,7 +40,6 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
-import se.repos.indexing.item.HandlerChecksum;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
@@ -254,7 +254,7 @@ public class ReposTestIndexingTest {
 		
 		// first add cores
 		TestIndexOptions options = new TestIndexOptions().itemDefaults();
-		options.addHandler(new HandlerChecksum()); // no dependencies so can be added now
+		// define the core resource for export
 		options.addCore("dummycore", "se/repos/indexing/testing/solr/dummycore/**");
 		// then getInstance
 		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);
@@ -264,20 +264,38 @@ public class ReposTestIndexingTest {
 		// then enable for repository
 		indexing.enable(repo);
 		
-		SvnImport im = repo.getSvnkitOp().createImport();
-		File tmp = File.createTempFile("temp-" + this.getClass().getName(), "");
-		im.setSource(tmp);
-		im.setSingleTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl() + "/temp")));
-		im.run();
-		tmp.delete();
+		SVNClientManager.newInstance().getCommitClient().doMkDir(new SVNURL[]{ SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false) }, "just committing");
 		
 		assertEquals("Should have indexed through the promised core and the given handler", 1, 
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
 		assertEquals("Core by name should be the same", 1,
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
-		assertEquals("Should have indexed with the extra handler in repositem", 1,
-				indexing.getCore("repositem").query(new SolrQuery("checksum_sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")).getResults().getNumFound());
+		assertEquals("Should have indexed with the default handlers in repositem", 1,
+				indexing.getCore("repositem").query(new SolrQuery("pathname:dir")).getResults().getNumFound());
 	}
+
+	@Test(timeout=100000)
+	public void testSolrAddError() throws SolrServerException, Exception {
+		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
+		
+		// first add cores
+		TestIndexOptions options = new TestIndexOptions().itemDefaults();
+		options.addHandler(new IndexingItemHandler() {
+			@Override
+			public void handle(IndexingItemProgress progress) {
+				progress.getFields().addField("some-unknown-field", "value");
+			}
+			@Override
+			public Set<Class<? extends IndexingItemHandler>> getDependencies() {
+				return null;
+			}
+		});
+		
+		ReposTestIndexing.getInstance(options).enable(repo);
+		
+		SVNClientManager.newInstance().getCommitClient().doMkDir(new SVNURL[]{ SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false) }, "just committing");
+	}
+		
 	
 	/**
 	 * Catch 22: Tests that use additional cores need the SolrServer instance for dependency injection into services,

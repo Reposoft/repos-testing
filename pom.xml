@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
-			<version>0.9.0</version>
+			<version>0.9.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sonatype.sisu</groupId>

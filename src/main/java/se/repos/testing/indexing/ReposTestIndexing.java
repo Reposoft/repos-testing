@@ -74,7 +74,6 @@ public class ReposTestIndexing {
 	 * Must be called so the instance is reset and can take new arguments
 	 */
 	public void tearDown() {
-		// TODO add feature for keeping data after test, handle deleteSolrDataAtTearDown
 		tearDownThreads();
 		// repository and hook is removed by SvnTestSetup.tearDown
 		this.options.onTearDown();
