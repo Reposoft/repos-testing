@@ -129,9 +129,14 @@ public abstract class TestIndexServerSolrHome {
 			try {
 				File outfile = new File(destination, rel);
 				// don't assume that entries come in order
-	            if (outfile.getParentFile() != null) {
-	                outfile.getParentFile().mkdirs();
-	            }
+				if (outfile.getParentFile() != null) {
+				    outfile.getParentFile().mkdirs();
+				}
+				if (r.getDescription().endsWith("/]")) { // only some folders look like this but those are the ones that will produce files instead of folders
+					outfile.mkdir();
+					logger.debug("Detected folder [}, created {}", rel, outfile);
+				}
+	            logger.debug("filename={} description={} url={}", r.getFilename(), r.getDescription(), r.getURL());
 	            // try to detect folders, can't use getFile because that throws exception for classpath resources
 //	            if (r.getFile() != null && r.getFile().isDirectory()) {
 //	            	outfile.mkdir();
@@ -144,9 +149,12 @@ public abstract class TestIndexServerSolrHome {
 				out.close();
 				logger.debug("Extracted file {} ({}) to {}", rel, extract.get(rel), outfile);
 			} catch (Exception e) {
+				if (e.getMessage().endsWith("(Is a directory)")) {
+					logger.debug("Ignoring suspected folder {} due to error {}", r.getDescription(), e.toString());
+					continue;
+				}
 				logger.warn("Failed to extract {} at {}", r.getDescription(), rel, e);
 			}
 		}
-		boolean b = true;
 	}
 }
