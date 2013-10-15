@@ -132,11 +132,11 @@ public abstract class TestIndexServerSolrHome {
 	            if (outfile.getParentFile() != null) {
 	                outfile.getParentFile().mkdirs();
 	            }
-	            // try to detect folders
-	            if (r.getFile() != null && r.getFile().isDirectory()) {
-	            	outfile.mkdir();
-	            	continue;
-	            }
+	            // try to detect folders, can't use getFile because that throws exception for classpath resources
+//	            if (r.getFile() != null && r.getFile().isDirectory()) {
+//	            	outfile.mkdir();
+//	            	continue;
+//	            }
 				InputStream in = r.getInputStream();
 				FileOutputStream out = new FileOutputStream(outfile);
 				IOUtils.copy(in, out);
