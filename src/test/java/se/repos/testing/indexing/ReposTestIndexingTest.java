@@ -29,13 +29,12 @@ import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc2.SvnCopySource;
-import org.tmatesoft.svn.core.wc2.SvnImport;
 import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnRemoteCopy;
 import org.tmatesoft.svn.core.wc2.SvnRemoteDelete;
+import org.tmatesoft.svn.core.wc2.SvnRemoteMkDir;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.IndexingItemHandler;
@@ -264,7 +263,9 @@ public class ReposTestIndexingTest {
 		// then enable for repository
 		indexing.enable(repo);
 		
-		SVNClientManager.newInstance().getCommitClient().doMkDir(new SVNURL[]{ SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false) }, "just committing");
+		SvnRemoteMkDir mkdir = repo.getSvnkitOp().createRemoteMkDir();
+		mkdir.addTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false)));
+		mkdir.run();
 		
 		assertEquals("Should have indexed through the promised core and the given handler", 1, 
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
@@ -293,15 +294,12 @@ public class ReposTestIndexingTest {
 		
 		ReposTestIndexing.getInstance(options).enable(repo);
 		
-		SVNClientManager.newInstance().getCommitClient().doMkDir(new SVNURL[]{ SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false) }, "just committing");
+		// any commit will now produce an invalid field to solr, should ideally throw exception here but most importantly shouldn't hang the test
+		SvnRemoteMkDir mkdir = repo.getSvnkitOp().createRemoteMkDir();
+		mkdir.addTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false)));
+		mkdir.run();
 	}
 		
-	
-	/**
-	 * Catch 22: Tests that use additional cores need the SolrServer instance for dependency injection into services,
-	 * but don't have an instance of SvnTestIndexing until they can create their handler - also dependency injection.
-	 * @throws Exception 
-	 */
 	@Test(timeout=100000)
 	public void testCoreInClasspathNotFound() throws SolrServerException, Exception {
 		CmsTestRepository repo = SvnTestSetup.getInstance().getRepository();
@@ -338,12 +336,9 @@ public class ReposTestIndexingTest {
 		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);
 		indexing.enable(repo);
 		
-		SvnImport im = repo.getSvnkitOp().createImport();
-		File tmp = File.createTempFile("temp-" + this.getClass().getName(), "");
-		im.setSource(tmp);
-		im.setSingleTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl() + "/temp")));
-		im.run();
-		tmp.delete();
+		SvnRemoteMkDir mkdir = repo.getSvnkitOp().createRemoteMkDir();
+		mkdir.addTarget(SvnTarget.fromURL(SVNURL.parseURIEncoded(repo.getUrl()).appendPath("/dir", false)));
+		mkdir.run();
 	}
 	
 	@Test
