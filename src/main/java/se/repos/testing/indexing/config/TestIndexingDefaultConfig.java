@@ -8,12 +8,14 @@ import java.util.Set;
 import org.apache.solr.client.solrj.SolrServer;
 
 import se.repos.indexing.IdStrategy;
+import se.repos.indexing.IndexAdmin;
 import se.repos.indexing.IndexingHandlers;
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.IdStrategyDefault;
 import se.repos.indexing.item.ItemContentBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
+import se.repos.indexing.repository.IndexAdminPerRepositoryRepositem;
 import se.repos.indexing.repository.ReposIndexingPerRepository;
 import se.repos.indexing.scheduling.IndexingSchedule;
 import se.repos.indexing.scheduling.IndexingScheduleBlockingOnly;
@@ -60,6 +62,7 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		}
 		IndexingHandlers.configureLast(handlerconf);
 		
+		bind(IndexAdmin.class).to(IndexAdminPerRepositoryRepositem.class);
 		bind(ReposIndexing.class).to(ReposIndexingPerRepository.class);
 		
 		bind(IdStrategy.class).to(IdStrategyDefault.class);
