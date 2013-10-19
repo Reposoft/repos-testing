@@ -105,6 +105,25 @@ public class TestIndexOptions {
 		return this;
 	}
 	
+	/**
+	 * Recommended custom config is to use modules, but prevonficured instances with @Inject can be added this way.
+	 * 
+	 * Note that handlers can't have dependencies to these, because the class will be different (unless we use cglib strategies etc).
+	 * 
+	 * @param handler To be wrapped
+	 * @return from {@link #addHandler(IndexingItemHandler)}
+	 */
+	public TestIndexOptions addHandlerNodeps(IndexingItemHandler handler) {
+		IndexingItemHandler wrapped;
+		if (handler instanceof se.repos.indexing.Marker) {
+			wrapped = new MarkerNodeps((se.repos.indexing.Marker) handler);
+		} else {
+			wrapped = new HandlerNodeps(handler);
+		}
+		logger.debug("Wrapping handler {} as {} to avoid dependency injection attempts", handler, wrapped);
+		return addHandler(wrapped);
+	}
+	
 	public Set<IndexingItemHandler> getHandlers() {
 		handlersUsed = true;
 		return handlers;

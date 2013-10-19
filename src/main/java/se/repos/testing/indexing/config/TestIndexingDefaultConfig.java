@@ -57,7 +57,6 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		Multibinder<IndexingItemHandler> handlerconf = Multibinder.newSetBinder(binder(), IndexingItemHandler.class);
 		IndexingHandlers.configureFirst(handlerconf);
 		for (IndexingItemHandler h : handlers) {
-			h = ignoreInjects(h);
 			handlerconf.addBinding().toInstance(h);
 		}
 		IndexingHandlers.configureLast(handlerconf);
@@ -68,21 +67,6 @@ public class TestIndexingDefaultConfig extends AbstractModule {
 		bind(IdStrategy.class).to(IdStrategyDefault.class);
 		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
 		bind(ItemContentBufferStrategy.class).to(ItemContentsMemory.class);
-	}
-
-	/**
-	 * Guice tries to resolve dependencies for the instances given to the multibinder, but those are preconfigured.
-	 * We also need a way to add configuration Modules and individual handler classess.
-	 */
-	private IndexingItemHandler ignoreInjects(final IndexingItemHandler h) {
-		return (IndexingItemHandler) java.lang.reflect.Proxy.newProxyInstance(h.getClass().getClassLoader(), new Class[] { IndexingItemHandler.class },
-				new java.lang.reflect.InvocationHandler() {
-					@Override
-					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] args)
-							throws Throwable {
-						return method.invoke(h, args);
-					}
-				});
 	}
 
 }

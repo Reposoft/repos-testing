@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 
 import se.repos.lgr.Lgr;
 import se.repos.lgr.LgrFactory;
