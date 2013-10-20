@@ -29,7 +29,9 @@ public class TestIndexOptions {
 	
 	private static final Lgr logger = LgrFactory.getLogger();
 	
-	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>();
+	private List<Module> config = new LinkedList<Module>();
+	
+	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>(); // if used this is referenced from a Module in #config
 
 	private boolean itemDefaultHandlers = false;
 	
@@ -48,11 +50,13 @@ public class TestIndexOptions {
 	 */
 	public TestIndexOptions itemDefaults() {
 		addCoreDefault();
+		config.add(new TestIndexDefaultModule());
 		itemDefaultHandlers();
 		return this;
 	}
 
 	protected void itemDefaultHandlers() {
+		config.add(new TestIndexHandlersModuleWithExtraInstances(handlers));
 		itemDefaultHandlers = true; // we don't configure handlers here anymore because the chain requires a config module
 	}
 	
@@ -136,6 +140,9 @@ public class TestIndexOptions {
 	}
 	
 	public Set<IndexingItemHandler> getHandlers() {
+		if (!itemDefaultHandlers) {
+			throw new IllegalStateException("Test indexing default config requires default handlers added, call itemDefaults() first.");
+		}
 		handlersUsed = true;
 		return handlers;
 	}
@@ -151,12 +158,6 @@ public class TestIndexOptions {
 	 * @return collection that supports add (of backend module etc)
 	 */
 	protected Collection<Module> getConfiguration() {
-		if (!itemDefaultHandlers) {
-			throw new IllegalStateException("Test indexing default config requires default handlers added, call itemDefaults() first.");
-		}
-		List<Module> config = new LinkedList<Module>();
-		config.add(new TestIndexDefaultModule());
-		config.add(new TestIndexHandlersModuleWithExtraInstances(handlers));
 		return config;
 	}
 

@@ -5,14 +5,12 @@ package se.repos.testing.indexing.config;
 
 import java.util.Set;
 
-import se.repos.indexing.IndexingHandlers;
 import se.repos.indexing.IndexingItemHandler;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 
 public class TestIndexHandlersModuleWithExtraInstances extends
-		AbstractModule {
+		TestIndexHandlersModule {
 	
 	private Set<IndexingItemHandler> handlers;
 
@@ -21,13 +19,10 @@ public class TestIndexHandlersModuleWithExtraInstances extends
 	}
 
 	@Override
-	protected void configure() {
-		Multibinder<IndexingItemHandler> handlerconf = Multibinder.newSetBinder(binder(), IndexingItemHandler.class);
-		IndexingHandlers.configureFirst(handlerconf);
+	protected void configureExtra(Multibinder<IndexingItemHandler> handlerconf) {
 		for (IndexingItemHandler h : handlers) {
 			handlerconf.addBinding().toInstance(h);
 		}
-		IndexingHandlers.configureLast(handlerconf);
 	}
 
 }
