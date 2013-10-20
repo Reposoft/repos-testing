@@ -29,13 +29,13 @@ public class ReposTestIndexing {
 
 	private static ReposTestIndexing instance = null;
 	
-	/**
-	 * State in current test, not thread safe of course.
-	 */
 	private TestIndexOptions options = null;
-	private Collection<Thread> threads = new LinkedList<Thread>();
-
-	private TestIndexServer server;
+	
+	private Injector context = null;
+	
+	private TestIndexServer server = null;
+	
+	private Collection<Thread> threads = new LinkedList<Thread>();	
 	
 	/**
 	 * Enforce singleton, makes optimizations possible.
@@ -76,6 +76,7 @@ public class ReposTestIndexing {
 	public void tearDown() {
 		tearDownThreads();
 		// repository and hook is removed by SvnTestSetup.tearDown
+		this.context = null;
 		this.options.onTearDown();
 		this.options = null;
 		this.server.destroy();
@@ -112,8 +113,15 @@ public class ReposTestIndexing {
 		return this.server.getCoreUrl(identifier);
 	}
 	
-	public SolrServer getCore(TestCore core) {
+	public SolrServer getInstance(TestCore core) {
 		return getCore(core.getIdentifier());
+	}
+	
+	public Injector getContext() {
+		if (context == null) {
+			throw new IllegalStateException("Context has not been created. Run enable.");
+		}
+		return context;
 	}
 	
 	/**
@@ -132,14 +140,18 @@ public class ReposTestIndexing {
 	}
 	
 	public ReposTestIndexing enable(ReposTestBackend backend, Injector parent) {
+		if (context != null) {
+			throw new IllegalStateException("Already enabled. Run tearDown to reset.");
+		}
+		
 		Module backendConfig = backend.getConfiguration();
 		Collection<Module> config = options.getConfiguration();
 		config.add(backendConfig);
 		for (TestCore core : options.getCores()) {
-			SolrServer solrCore = getCore(core);
+			SolrServer solrCore = getInstance(core);
 			config.add(core.getConfiguration(solrCore));
 		}
-		Injector context = parent.createChildInjector(config);
+		context = parent.createChildInjector(config);
 		
 		context.getInstance(IndexingSchedule.class).start();
 		

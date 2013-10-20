@@ -86,7 +86,7 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 		String testSolrHome = "src/test/resources/" + solrhome; // has to be in classpath because "collection1" is hardcoded in TestHarness initCore/createCore
 
 		// https://code.google.com/p/gbif-occurrencestore/source/browse/occurrence/trunk/occurrence-index-builder/src/main/java/org/gbif/occurrence/index/hadoop/EmbeddedSolrServerBuilder.java
-		CoreDescriptor repositemDescriptor = new CoreDescriptor(coreContainer, /*props*/ null);
+		CoreDescriptor repositemDescriptor = new CoreDescriptor(coreContainer, "repositem", instanceDir.getAbsolutePath()); // Changed to Solr 4.5.0 args without checking if anything else should change.
 		SolrCore repositem = new SolrCore("repositem", repositemDescriptor);
 		EmbeddedSolrServer solrServer = new EmbeddedSolrServer(coreContainer, "-multicore-");
 		
