@@ -40,6 +40,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
 import se.repos.testing.indexing.TestIndexOptions;
+import se.simonsoft.cms.item.commit.CmsCommit;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
 import se.simonsoft.cms.testing.svn.SvnTestSetup;
 
@@ -50,7 +51,7 @@ public class ReposTestIndexingTest {
 	@After
 	public void tearDown() {
 		SvnTestSetup.getInstance().tearDown();
-		ReposTestIndexing.getInstance().tearDown(); // TODO make static and set up + tear down only once?
+		ReposTestIndexing.getInstance().tearDown();
 	}
 	
 	@Test(timeout=100000)
@@ -62,7 +63,14 @@ public class ReposTestIndexingTest {
 		
 		// single core init with default configuration
 		logger.debug("Enabling indexing for {}", repo);
-		SolrServer solr = ReposTestIndexing.getInstance().enable(repo).getCore("repositem");
+		ReposTestIndexing indexing = ReposTestIndexing.getInstance().enable(repo);
+		SolrServer solr = indexing.getCore("repositem");
+		
+		try {
+			indexing.getContext().getInstance(CmsCommit.class); // didn't work in 0.7
+		} catch (/*com.google.inject.Creation*/Exception e) {
+			// we currenty don't bind user level services
+		}
 		
 		// before any commits but after load+enable
 		QueryResponse result = solr.query(new SolrQuery("type:folder AND pathname:dir"));
