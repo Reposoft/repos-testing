@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import se.repos.testing.indexing.TestCore;
 import se.repos.testing.indexing.TestIndexOptions;
 
 /**
@@ -53,15 +53,15 @@ public abstract class TestIndexServerSolrHome {
 			throw new IllegalStateException("core aliases not supported, yet");
 		}
 		File instanceDir = createHome();
-		Map<String, String> cores = options.getCores();
-		for (String c : cores.keySet()) {
-			File coreFolder = new File(instanceDir, c + "/");
+		Iterable<TestCore> cores = options.getCores();
+		for (TestCore c : cores) {
+			File coreFolder = new File(instanceDir, c.getIdentifier() + "/");
 			if (coreFolder.exists()) {
 				logger.debug("Found existing core folder {}", coreFolder);
 				onCoreExisting(coreFolder);
 			}
 			coreFolder.mkdir();
-			extractResourceFolder(cores.get(c), coreFolder);
+			extractResourceFolder(c.getResourcePattern(), coreFolder);
 			logger.debug("Test server core {} added at {}", c, coreFolder);
 			onCoreCreated(coreFolder);
 		}

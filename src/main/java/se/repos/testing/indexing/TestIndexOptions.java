@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.solr.client.solrj.SolrServer;
-
 import com.google.inject.Module;
 
 import se.repos.indexing.IndexingItemHandler;
@@ -20,7 +18,6 @@ import se.repos.lgr.Lgr;
 import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexDefaultModule;
 import se.repos.testing.indexing.config.TestIndexHandlersModuleWithExtraInstances;
-import se.repos.testing.indexing.config.TestIndexSolrCoreModule;
 import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.repos.testing.indexing.solr.TestIndexServerSolrJettyExample;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -36,8 +33,9 @@ public class TestIndexOptions {
 
 	private boolean itemDefaultHandlers = false;
 	
-	private Map<String, String> cores = new HashMap<String, String>();
+	private Map<String, TestCore> cores = new HashMap<String, TestCore>();
 	
+	@Deprecated // extend TestCore to support this, when aliases are needed
 	private Map<String, String> aliases = new HashMap<String, String>();
 	
 	// usage is a bit tricky so try to produce meaningful errors
@@ -49,7 +47,7 @@ public class TestIndexOptions {
 	 * @return for chaining
 	 */
 	public TestIndexOptions itemDefaults() {
-		this.addCore("repositem", "se/repos/indexing/solr/repositem/**");
+		addCoreDefault();
 		itemDefaultHandlers();
 		return this;
 	}
@@ -58,11 +56,19 @@ public class TestIndexOptions {
 		itemDefaultHandlers = true; // we don't configure handlers here anymore because the chain requires a config module
 	}
 	
+	public TestIndexOptions addCoreDefault() {
+		return this.addCore(new TestCore("repositem").setResources("se/repos/indexing/solr/repositem/**"));
+	}
+	
 	public TestIndexOptions addCore(String identifier, String resourcePattern) {
+		return this.addCore(new TestCore(identifier).setResources(resourcePattern));
+	}
+	
+	public TestIndexOptions addCore(TestCore core) {
 		if (coresUsed) {
 			throw new IllegalStateException("Test indexing has already been initialized with cores, can not add new");
 		}
-		cores.put(identifier, resourcePattern);
+		cores.put(core.getIdentifier(), core);
 		return this;
 	}
 	
@@ -92,9 +98,9 @@ public class TestIndexOptions {
 		return aliases.containsKey(identifier);
 	}
 	
-	public Map<String, String> getCores() {
+	public Iterable<TestCore> getCores() {
 		coresUsed = true;
-		return cores;
+		return cores.values();
 	}
 	
 	/**
@@ -135,19 +141,12 @@ public class TestIndexOptions {
 	}
 	
 	/**
-	 * @param repositem from {@link ReposTestIndexing#enable(CmsTestRepository)}
-	 * @return
-	 */
-	protected Collection<Module> getConfiguration(SolrServer repositem) {
-		Collection<Module> config = getConfiguration();
-		config.add(new TestIndexSolrCoreModule("repositem", repositem));
-		return config;
-	}
-
-	/**
-	 * Produces indexing configuration.
+	 * Produces indexing configuration, for {@link ReposTestIndexing#enable(CmsTestRepository)}.
 	 * 
-	 * This configuration runs in addition to that from {@link se.repos.testing.ReposTestBackend#getConfiguration()}.
+	 * The returned configuration should exclude backend(s),
+	 * configured in {@link se.repos.testing.ReposTestBackend},
+	 * and solr cores,
+	 * configured in {@link #addCore(TestCore)}.
 	 * 
 	 * @return collection that supports add (of backend module etc)
 	 */

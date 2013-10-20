@@ -18,9 +18,7 @@ public class TestIndexOptionsTest {
 		TestIndexOptions o = new TestIndexOptions()
 			.addCore("mycore", "se/my/core/**")
 			.addCore("myothercore", "se/my/other/**");
-		assertEquals(2, o.getCores().size());
 		assertTrue(o.hasCore("myothercore"));
-		assertEquals("se/my/core/**", o.getCores().get("mycore"));
 	}
 	
 	@Test
@@ -34,7 +32,7 @@ public class TestIndexOptionsTest {
 	@Test
 	public void testDefaults() {
 		TestIndexOptions o = new TestIndexOptions().itemDefaults();
-		assertTrue(o.getCores().containsKey("repositem"));
+		assertTrue(o.hasCore("repositem"));
 	}
 
 }

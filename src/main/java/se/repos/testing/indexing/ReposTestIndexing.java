@@ -103,13 +103,17 @@ public class ReposTestIndexing {
 	 */
 	public SolrServer getCore(String identifier) {
 		if (!options.hasCore(identifier)) {
-			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores().keySet());
+			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores());
 		}
 		return this.server.getCore(identifier);
 	}
 	
 	public String getCoreUrl(String identifier) {
 		return this.server.getCoreUrl(identifier);
+	}
+	
+	public SolrServer getCore(TestCore core) {
+		return getCore(core.getIdentifier());
 	}
 	
 	/**
@@ -129,8 +133,12 @@ public class ReposTestIndexing {
 	
 	public ReposTestIndexing enable(ReposTestBackend backend, Injector parent) {
 		Module backendConfig = backend.getConfiguration();
-		Collection<Module> config = options.getConfiguration(getCore("repositem"));
+		Collection<Module> config = options.getConfiguration();
 		config.add(backendConfig);
+		for (TestCore core : options.getCores()) {
+			SolrServer solrCore = getCore(core);
+			config.add(core.getConfiguration(solrCore));
+		}
 		Injector context = parent.createChildInjector(config);
 		
 		context.getInstance(IndexingSchedule.class).start();
