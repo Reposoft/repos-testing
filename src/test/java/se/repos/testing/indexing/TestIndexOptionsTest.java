@@ -4,11 +4,9 @@
 package se.repos.testing.indexing;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 
-import se.repos.indexing.IndexingItemHandler;
 import se.repos.testing.indexing.TestIndexOptions;
 
 public class TestIndexOptionsTest {
@@ -19,14 +17,6 @@ public class TestIndexOptionsTest {
 			.addCore("mycore", "se/my/core/**")
 			.addCore("myothercore", "se/my/other/**");
 		assertTrue(o.hasCore("myothercore"));
-	}
-	
-	@Test
-	public void testHandlers() {
-		TestIndexOptions o = new TestIndexOptions()
-			.addHandler(mock(IndexingItemHandler.class));
-		assertEquals(1, o.getHandlers().size());
-		assertNotNull(o.getHandlers().iterator().next());
 	}
 	
 	@Test

@@ -32,8 +32,6 @@ public class TestIndexOptions {
 	private List<Module> config = new LinkedList<Module>();
 	
 	private Set<IndexingItemHandler> handlers = new LinkedHashSet<IndexingItemHandler>(); // if used this is referenced from a Module in #config
-
-	private boolean itemDefaultHandlers = false;
 	
 	private Map<String, TestCore> cores = new HashMap<String, TestCore>();
 	
@@ -45,19 +43,45 @@ public class TestIndexOptions {
 	boolean handlersUsed = false;
 	
 	/**
+	 * Include the "repositem" core.
+	 */
+	public TestIndexOptions() {
+		this.addCoreDefault();
+	}
+	
+	/**
+	 * Include custom cores, possibly without "repositem" (though indexing will not be useful without it).
+	 */
+	public TestIndexOptions(Iterable<TestCore> cores) {
+		for (TestCore c : cores) {
+			this.addCore(c);
+		}
+	}
+	
+	public TestIndexOptions addModule(Module module) {
+		config.add(module);
+		return this;
+	}
+	
+	/**
 	 * Set up for basic "repositem" blocking indexing, i.e. structure but not contents.
+	 * 
+	 * 
+	 * 
 	 * @return for chaining
 	 */
 	public TestIndexOptions itemDefaults() {
-		addCoreDefault();
-		config.add(new TestIndexDefaultModule());
+		itemDefaultServices();
 		itemDefaultHandlers();
 		return this;
 	}
 
-	protected void itemDefaultHandlers() {
-		config.add(new TestIndexHandlersModuleWithExtraInstances(handlers));
-		itemDefaultHandlers = true; // we don't configure handlers here anymore because the chain requires a config module
+	public TestIndexOptions itemDefaultServices() {
+		return addModule(new TestIndexDefaultModule());
+	}
+
+	public TestIndexOptions itemDefaultHandlers() {
+		return addModule(new TestIndexHandlersModuleWithExtraInstances(handlers));
 	}
 	
 	public TestIndexOptions addCoreDefault() {
@@ -139,14 +163,6 @@ public class TestIndexOptions {
 		return addHandler(wrapped);
 	}
 	
-	public Set<IndexingItemHandler> getHandlers() {
-		if (!itemDefaultHandlers) {
-			throw new IllegalStateException("Test indexing default config requires default handlers added, call itemDefaults() first.");
-		}
-		handlersUsed = true;
-		return handlers;
-	}
-	
 	/**
 	 * Produces indexing configuration, for {@link ReposTestIndexing#enable(CmsTestRepository)}.
 	 * 
@@ -158,6 +174,7 @@ public class TestIndexOptions {
 	 * @return collection that supports add (of backend module etc)
 	 */
 	protected Collection<Module> getConfiguration() {
+		handlersUsed = true;
 		return config;
 	}
 
