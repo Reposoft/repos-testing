@@ -136,7 +136,6 @@ public abstract class TestIndexServerSolrHome {
 					outfile.mkdir();
 					logger.debug("Detected folder [}, created {}", rel, outfile);
 				}
-	            logger.debug("filename={} description={} url={}", r.getFilename(), r.getDescription(), r.getURL());
 	            // try to detect folders, can't use getFile because that throws exception for classpath resources
 //	            if (r.getFile() != null && r.getFile().isDirectory()) {
 //	            	outfile.mkdir();
@@ -147,7 +146,7 @@ public abstract class TestIndexServerSolrHome {
 				IOUtils.copy(in, out);
 				in.close();
 				out.close();
-				logger.debug("Extracted file {} ({}) to {}", rel, extract.get(rel), outfile);
+				logger.debug("Extracted file {} to {} from {}", rel, outfile, r.getURL());
 			} catch (Exception e) {
 				if (e.getMessage().endsWith("(Is a directory)")) {
 					logger.debug("Ignoring suspected folder {} due to error {}", r.getDescription(), e.toString());
