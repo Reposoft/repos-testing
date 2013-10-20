@@ -3,8 +3,11 @@
  */
 package se.repos.testing.indexing;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,7 +18,9 @@ import com.google.inject.Module;
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.lgr.Lgr;
 import se.repos.lgr.LgrFactory;
-import se.repos.testing.indexing.config.TestIndexingDefaultConfig;
+import se.repos.testing.indexing.config.TestIndexDefaultModule;
+import se.repos.testing.indexing.config.TestIndexHandlersModuleWithExtraInstances;
+import se.repos.testing.indexing.config.TestIndexSolrCoreModule;
 import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
 import se.repos.testing.indexing.solr.TestIndexServerSolrJettyExample;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -130,12 +135,30 @@ public class TestIndexOptions {
 	}
 	
 	/**
-	 * Will be used once from {@link ReposTestIndexing#enable(CmsTestRepository)} to get indexing an possibly nearby services.
-	 * @param repositem
+	 * @param repositem from {@link ReposTestIndexing#enable(CmsTestRepository)}
 	 * @return
 	 */
-	protected Module getConfiguration(SolrServer repositem) {
-		return new TestIndexingDefaultConfig(repositem, getHandlers(), itemDefaultHandlers);
+	protected Collection<Module> getConfiguration(SolrServer repositem) {
+		Collection<Module> config = getConfiguration();
+		config.add(new TestIndexSolrCoreModule("repositem", repositem));
+		return config;
+	}
+
+	/**
+	 * Produces indexing configuration.
+	 * 
+	 * This configuration runs in addition to that from {@link se.repos.testing.ReposTestBackend#getConfiguration()}.
+	 * 
+	 * @return collection that supports add (of backend module etc)
+	 */
+	protected Collection<Module> getConfiguration() {
+		if (!itemDefaultHandlers) {
+			throw new IllegalStateException("Test indexing default config requires default handlers added, call itemDefaults() first.");
+		}
+		List<Module> config = new LinkedList<Module>();
+		config.add(new TestIndexDefaultModule());
+		config.add(new TestIndexHandlersModuleWithExtraInstances(handlers));
+		return config;
 	}
 
 	/**

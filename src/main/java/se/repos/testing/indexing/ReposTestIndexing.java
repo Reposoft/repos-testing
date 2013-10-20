@@ -129,8 +129,9 @@ public class ReposTestIndexing {
 	
 	public ReposTestIndexing enable(ReposTestBackend backend, Injector parent) {
 		Module backendConfig = backend.getConfiguration();
-		Module config = options.getConfiguration(getCore("repositem"));
-		Injector context = parent.createChildInjector(backendConfig, config);
+		Collection<Module> config = options.getConfiguration(getCore("repositem"));
+		config.add(backendConfig);
+		Injector context = parent.createChildInjector(config);
 		
 		context.getInstance(IndexingSchedule.class).start();
 		
