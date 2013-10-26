@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>repos-testing</artifactId>
-	<version>0.7.2-SNAPSHOT</version>
+	<version>0.7.3</version>
 	<packaging>jar</packaging>
 	
 	<name>Repos Test Framework</name>
@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>repos-indexing</artifactId>
-			<version>0.7</version>
+			<version>0.7.3</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
@@ -70,12 +70,12 @@
 		<dependency>
 			<groupId>org.sonatype.sisu</groupId>
 			<artifactId>sisu-guice</artifactId>
-			<version>3.1.5</version>
+			<version>3.1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sonatype.sisu.inject</groupId>
 			<artifactId>guice-multibindings</artifactId>
-			<version>3.1.5</version>		
+			<version>3.1.7</version>		
 		</dependency>	
 		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
 		<dependency>
@@ -87,7 +87,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.7.5</version>
+			<version>${slf4j-version}</version>
 		</dependency>	
 	</dependencies>
 	
