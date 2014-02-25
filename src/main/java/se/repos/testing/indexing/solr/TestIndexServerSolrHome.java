@@ -134,7 +134,7 @@ public abstract class TestIndexServerSolrHome {
 				}
 				if (r.getDescription().endsWith("/]")) { // only some folders look like this but those are the ones that will produce files instead of folders
 					outfile.mkdir();
-					logger.debug("Detected folder [}, created {}", rel, outfile);
+					logger.debug("Detected folder {}, created {}", rel, outfile);
 				}
 	            // try to detect folders, can't use getFile because that throws exception for classpath resources
 //	            if (r.getFile() != null && r.getFile().isDirectory()) {

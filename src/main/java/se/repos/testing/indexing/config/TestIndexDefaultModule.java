@@ -3,10 +3,9 @@
  */
 package se.repos.testing.indexing.config;
 
-import se.repos.indexing.IdStrategy;
+
 import se.repos.indexing.IndexAdmin;
 import se.repos.indexing.ReposIndexing;
-import se.repos.indexing.item.IdStrategyDefault;
 import se.repos.indexing.item.ItemContentBufferStrategy;
 import se.repos.indexing.item.ItemPropertiesBufferStrategy;
 import se.repos.indexing.repository.IndexAdminPerRepositoryRepositem;
@@ -17,6 +16,9 @@ import se.repos.indexing.twophases.ItemContentsMemory;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
 
 import com.google.inject.AbstractModule;
+
+import se.simonsoft.cms.item.indexing.IdStrategy;
+import se.simonsoft.cms.item.indexing.IdStrategyDefault;
 
 /**
  * Indexing configuration for our tests in this module.
