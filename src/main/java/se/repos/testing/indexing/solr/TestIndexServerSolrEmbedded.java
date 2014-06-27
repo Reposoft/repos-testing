@@ -48,7 +48,9 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 	public void destroy() {
 		// We've had issues with test teardowns failing to delete the instanceDir
 		//If this shutdown doesn't help we should rewrite getCore to keep a reference to the cores (one per identifier) and shut down those too
-		container.shutdown();
+		if (container != null) {
+			container.shutdown();
+		}
 		// this is what has failed with java.io.IOException: Unable to delete directory /tmp/testindexing-4294212186812628888.dir/repositem/data/index.
 		super.destroy(instanceDir);
 		instanceDir = null;
