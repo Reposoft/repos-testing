@@ -53,6 +53,9 @@ public class ReposTestIndexing {
 	}
 	
 	public static ReposTestIndexing getInstance(TestIndexOptions options) {
+		if (options == null) {
+			throw new IllegalArgumentException("Missing " + TestIndexOptions.class.getSimpleName() + " argument");
+		}
 		if (instance == null) {
 			instance = new ReposTestIndexing();
 			instance.beforeTest(options); // we assume that getInstance is called before each test	
@@ -142,6 +145,15 @@ public class ReposTestIndexing {
 	public ReposTestIndexing enable(ReposTestBackend backend, Injector parent) {
 		if (context != null) {
 			throw new IllegalStateException("Already enabled. Run tearDown to reset.");
+		}
+		if (options == null) {
+			throw new IllegalStateException("Missing options");
+		}
+		if (backend == null) {
+			throw new IllegalArgumentException("Backend argument is required");
+		}
+		if (parent == null) {
+			throw new IllegalArgumentException("Parent injector argument is required");
 		}
 		
 		Module backendConfig = backend.getConfiguration();
