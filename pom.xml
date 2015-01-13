@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>repos-indexing</artifactId>
-			<version>0.10-SNAPSHOT</version>
+			<version>0.10</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
