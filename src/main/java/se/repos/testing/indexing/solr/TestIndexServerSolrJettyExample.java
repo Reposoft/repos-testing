@@ -184,7 +184,9 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 
 	@Override
 	public SolrServer getCore(String identifier) {
-		return new se.repos.indexing.solrj.HttpSolrServerNamed(getCoreUrl(identifier)).setName(identifier);
+		se.repos.indexing.solrj.HttpSolrServerNamed server = new se.repos.indexing.solrj.HttpSolrServerNamed(getCoreUrl(identifier)).setName(identifier);
+		//server.setRequestWriter(new BinaryRequestWriter());
+		return server;
 	}
 	
 	@Override
