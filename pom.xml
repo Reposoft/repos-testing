@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>repos-testing</artifactId>
-	<version>0.10.2-SNAPSHOT</version>
+	<version>0.10.1</version>
 	<packaging>jar</packaging>
 	
 	<name>${project.artifactId}-${project.version}</name>
@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>repos-indexing</artifactId>
-			<version>0.10.2</version>
+			<version>0.10.1</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
