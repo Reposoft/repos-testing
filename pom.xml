@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>repos-testing</artifactId>
-	<version>0.11.0-SNAPSHOT</version>
+	<version>0.12.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>${project.artifactId}-${project.version}</name>
@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>repos-indexing</artifactId>
-			<version>0.11.0</version>
+			<version>0.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
-			<version>1.2.0</version>
+			<version>1.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sonatype.sisu</groupId>
@@ -92,9 +92,10 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-item</artifactId>
-			<version>2.5.0</version>
+			<version>2.5.2</version>
 		</dependency>
 	</dependencies>
 	
-	<description>Version number should be aligned with repos-indexing (at least first 2 parts).</description>
+	<description>Version number should be aligned with repos-indexing (at least first 2 parts).
+Allowed to remain SNAPSHOT since it is not a shipping module.</description>
 </project>
