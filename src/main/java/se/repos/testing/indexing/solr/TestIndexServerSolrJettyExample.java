@@ -7,9 +7,9 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import se.repos.lgr.Lgr;
-import se.repos.lgr.LgrFactory;
 import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestClient;
@@ -27,7 +27,7 @@ import se.repos.testing.indexing.TestIndexServer;
  */
 public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome implements TestIndexServer {
 
-	private static final Lgr logger = LgrFactory.getLogger();
+	private static final Logger logger = LoggerFactory.getLogger(TestIndexServerSolrJettyExample.class);
 
 	/**
 	 * After designing this class I found in https://wiki.apache.org/solr/CoreAdmin that cores can be created from any path,

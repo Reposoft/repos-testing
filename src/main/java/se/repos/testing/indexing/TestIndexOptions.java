@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Module;
 
 import se.repos.indexing.IndexingItemHandler;
-import se.repos.lgr.Lgr;
-import se.repos.lgr.LgrFactory;
 import se.repos.testing.indexing.config.TestIndexDefaultModule;
 import se.repos.testing.indexing.config.TestIndexHandlersModuleWithExtraInstances;
 import se.repos.testing.indexing.solr.TestIndexServerSolrEmbedded;
@@ -27,7 +28,7 @@ import se.simonsoft.cms.testing.svn.CmsTestRepository;
  */
 public class TestIndexOptions {
 	
-	private static final Lgr logger = LgrFactory.getLogger();
+	private static final Logger logger = LoggerFactory.getLogger(TestIndexOptions.class);
 	
 	private List<Module> config = new LinkedList<Module>();
 	
