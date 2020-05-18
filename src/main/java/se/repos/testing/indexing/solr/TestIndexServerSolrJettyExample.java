@@ -6,7 +6,7 @@ package se.repos.testing.indexing.solr;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,7 +183,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	}
 
 	@Override
-	public SolrServer getCore(String identifier) {
+	public SolrClient getCore(String identifier) {
 		se.repos.indexing.solrj.HttpSolrServerNamed server = new se.repos.indexing.solrj.HttpSolrServerNamed(getCoreUrl(identifier)).setName(identifier);
 		//server.setRequestWriter(new BinaryRequestWriter());
 		return server;

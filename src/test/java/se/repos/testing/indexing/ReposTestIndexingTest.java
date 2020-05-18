@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.junit.After;
@@ -55,7 +55,7 @@ public class ReposTestIndexingTest {
 	}
 	
 	@Test(timeout=100000)
-	public void testEnableCmsTestRepository() throws SolrServerException {
+	public void testEnableCmsTestRepository() throws SolrServerException, IOException {
 		InputStream dumpfile = this.getClass().getClassLoader().getResourceAsStream(
 				"se/repos/indexing/testrepo1.svndump");
 		assertNotNull(dumpfile);
@@ -64,7 +64,7 @@ public class ReposTestIndexingTest {
 		// single core init with default configuration
 		logger.debug("Enabling indexing for {}", repo);
 		ReposTestIndexing indexing = ReposTestIndexing.getInstance().enable(repo);
-		SolrServer solr = indexing.getCore("repositem");
+		SolrClient solr = indexing.getCore("repositem");
 		
 		try {
 			indexing.getContext().getInstance(CmsCommit.class); // didn't work in 0.7
@@ -130,7 +130,7 @@ public class ReposTestIndexingTest {
 		// then getInstance
 		ReposTestIndexing indexing = ReposTestIndexing.getInstance(options);
 		// then add handlers
-		SolrServer extracore = indexing.getCore("dummycore");
+		SolrClient extracore = indexing.getCore("dummycore");
 		options.addHandler(new DummyItemHandler(extracore));
 		// then enable for repository
 		indexing.enable(repo);

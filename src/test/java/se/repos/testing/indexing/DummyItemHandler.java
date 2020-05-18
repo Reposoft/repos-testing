@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -16,9 +16,9 @@ import se.repos.indexing.item.IndexingItemProgress;
 
 public class DummyItemHandler implements IndexingItemHandler {
 
-	private SolrServer dummycore;
+	private SolrClient dummycore;
 
-	DummyItemHandler(SolrServer dummycore) {
+	DummyItemHandler(SolrClient dummycore) {
 		this.dummycore = dummycore;
 	}
 	

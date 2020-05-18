@@ -3,7 +3,7 @@
  */
 package se.repos.testing.indexing.config;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
@@ -11,16 +11,16 @@ import com.google.inject.name.Names;
 public class TestIndexSolrCoreModule extends AbstractModule {
 
 	private String identifier;
-	private SolrServer solrCore;
+	private SolrClient solrCore;
 
-	public TestIndexSolrCoreModule(String identifier, SolrServer solrCore) {
+	public TestIndexSolrCoreModule(String identifier, SolrClient solrCore) {
 		this.identifier = identifier;
 		this.solrCore = solrCore;
 	}
 	
 	@Override
 	protected void configure() {
-		bind(SolrServer.class).annotatedWith(Names.named(identifier)).toInstance(solrCore);
+		bind(SolrClient.class).annotatedWith(Names.named(identifier)).toInstance(solrCore);
 	}
 	
 }

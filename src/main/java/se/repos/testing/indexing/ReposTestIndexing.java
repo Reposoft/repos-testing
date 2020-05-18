@@ -6,7 +6,7 @@ package se.repos.testing.indexing;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +105,7 @@ public class ReposTestIndexing {
 	 * @param identifier our internal core name, though maybe suffixed in Solr
 	 * @return direct Solr access to the core
 	 */
-	public SolrServer getCore(String identifier) {
+	public SolrClient getCore(String identifier) {
 		if (!options.hasCore(identifier)) {
 			throw new IllegalArgumentException("Core '" + identifier + "' not found in test cores " + options.getCores());
 		}
@@ -116,7 +116,7 @@ public class ReposTestIndexing {
 		return this.server.getCoreUrl(identifier);
 	}
 	
-	public SolrServer getInstance(TestCore core) {
+	public SolrClient getInstance(TestCore core) {
 		return getCore(core.getIdentifier());
 	}
 	
@@ -160,7 +160,7 @@ public class ReposTestIndexing {
 		Collection<Module> config = options.getConfiguration();
 		config.add(backendConfig);
 		for (TestCore core : options.getCores()) {
-			SolrServer solrCore = getInstance(core);
+			SolrClient solrCore = getInstance(core);
 			config.add(core.getConfiguration(solrCore));
 		}
 		context = parent.createChildInjector(config);
