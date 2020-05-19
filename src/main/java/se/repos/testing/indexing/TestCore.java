@@ -3,7 +3,7 @@
  */
 package se.repos.testing.indexing;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 
 import se.repos.testing.indexing.config.TestIndexSolrCoreModule;
 
@@ -23,7 +23,7 @@ public class TestCore {
 		return this;
 	}
 	
-	public Module getConfiguration(SolrServer coreInstance) {
+	public Module getConfiguration(SolrClient coreInstance) {
 		return new TestIndexSolrCoreModule(this.identifier, coreInstance);
 	}
 

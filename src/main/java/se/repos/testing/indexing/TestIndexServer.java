@@ -3,7 +3,7 @@
  */
 package se.repos.testing.indexing;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 
 /**
  * It is quite likely that, as development of applications continue, we'll need a more full fledged server than that used in test cases.
@@ -24,7 +24,7 @@ public interface TestIndexServer {
 	 * @param identifies the resources needed, used to flag {@link TestIndexOptions#addCoreAlias(String, String)}
 	 * @return the core, ready for indexing
 	 */
-	SolrServer getCore(String identifier);
+	SolrClient getCore(String identifier);
 	
 	String getCoreUrl(String identifier);	
 	

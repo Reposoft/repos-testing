@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -28,7 +28,7 @@ public class TestIndexServerSolrEmbeddedTest {
 		TestIndexOptions o = new TestIndexOptions().itemDefaults();
 		server.beforeTest(o);
 		// get a core for a test
-		SolrServer core = server.getCore("repositem");
+		SolrClient core = server.getCore("repositem");
 		assertNotNull("Should configure a solr connection", core);
 		QueryResponse result = core.query(new SolrQuery("*:*"));
 		assertNotNull("Should run queyr");
