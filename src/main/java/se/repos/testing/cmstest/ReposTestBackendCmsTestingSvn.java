@@ -37,6 +37,7 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	
 	// test may run as different user than svn so we might need to override umask
 	private static final String MKFIFO_OPTIONS = " --mode=0666";	
+	//private static final String MKFIFO_OPTIONS = " -m 0666"; // BSD / macOS does not support "--mode".	
 	
 	private CmsRepositorySvn repository;
 
