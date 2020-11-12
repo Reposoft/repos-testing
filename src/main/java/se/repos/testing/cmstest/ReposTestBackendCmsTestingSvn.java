@@ -36,8 +36,9 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	// test may run as different user than svn so we might need to override umask
-	private static final String MKFIFO_OPTIONS = " --mode=0666";	
-	//private static final String MKFIFO_OPTIONS = " -m 0666"; // BSD / macOS does not support "--mode".	
+	//public static final String MKFIFO_OPTIONS = " --mode=0666"; // Works on linux, used 2013-2020.
+	public static final String MKFIFO_OPTIONS = " -m 0666"; // BSD and macOS does not support "--mode" only "-m".
+	// Still does not work on macOS, no communication in fifo. Likely only one test that actually relies on this feature.
 	
 	private CmsRepositorySvn repository;
 

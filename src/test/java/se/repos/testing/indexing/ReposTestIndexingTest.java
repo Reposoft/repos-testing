@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -39,6 +40,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import se.repos.indexing.IndexingItemHandler;
 import se.repos.indexing.item.IndexingItemProgress;
+import se.repos.testing.cmstest.ReposTestBackendCmsTestingSvn;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.item.commit.CmsCommit;
 import se.simonsoft.cms.testing.svn.CmsTestRepository;
@@ -243,8 +245,11 @@ public class ReposTestIndexingTest {
 		
 		// set up named pipe
 		final File pipe = new File(hooksdir, "post-commit.pipe.test");
+		final String pipecmd = "mkfifo" + ReposTestBackendCmsTestingSvn.MKFIFO_OPTIONS;
 		try {
-			Runtime.getRuntime().exec("mkfifo --mode=0666 " + pipe.getAbsolutePath());
+			Process exec = Runtime.getRuntime().exec(pipecmd + " " + pipe.getAbsolutePath());
+			InputStream err = exec.getErrorStream();
+			IOUtils.copy(err, System.out);
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
