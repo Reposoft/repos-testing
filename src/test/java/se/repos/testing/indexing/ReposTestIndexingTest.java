@@ -90,7 +90,7 @@ public class ReposTestIndexingTest {
 			throw new RuntimeException(e);
 		}
 		
-		QueryResponse r2 = solr.query(new SolrQuery("path:\"/dir2\""));
+		QueryResponse r2 = solr.query(new SolrQuery("head:true AND path:\"/dir2\""));
 		assertEquals("should have indexed upon commit and blocked until indexing is done", 1, r2.getResults().getNumFound());
 		
 		// test that the hook+thread concept survives another commit
@@ -144,7 +144,7 @@ public class ReposTestIndexingTest {
 		assertEquals("Core by name should be the same", 1,
 				extracore.query(new SolrQuery("*:*")).getResults().getNumFound());
 		assertEquals("Should have indexed with the default handlers in repositem", 1,
-				indexing.getCore("repositem").query(new SolrQuery("pathname:dir")).getResults().getNumFound());
+				indexing.getCore("repositem").query(new SolrQuery("head:true AND pathname:dir")).getResults().getNumFound());
 	}
 
 	@Test(timeout=100000)
