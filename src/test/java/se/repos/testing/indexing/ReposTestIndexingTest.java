@@ -105,7 +105,7 @@ public class ReposTestIndexingTest {
 			throw new RuntimeException(e);
 		}
 		
-		QueryResponse r3 = solr.query(new SolrQuery("path:\"/dir3\""));
+		QueryResponse r3 = solr.query(new SolrQuery("head:true AND path:\"/dir3\""));
 		assertEquals("should have indexed upon commit and blocked until indexing is done", 1, r3.getResults().getNumFound());
 	}
 	
