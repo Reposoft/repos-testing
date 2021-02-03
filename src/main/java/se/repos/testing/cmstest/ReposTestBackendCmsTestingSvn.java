@@ -12,9 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
+import javax.inject.Provider;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmatesoft.svn.core.io.SVNRepository;
 
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -39,19 +42,21 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	private static final String MKFIFO_OPTIONS = " --mode=0666";	
 	//private static final String MKFIFO_OPTIONS = " -m 0666"; // BSD / macOS does not support "--mode".	
 	
-	private CmsRepositorySvn repository;
+	private final CmsRepositorySvn repository;
+	private final Provider<SVNRepository> svnkitProvider;
 
 	public ReposTestBackendCmsTestingSvn(CmsTestRepository repo) {
-		this(CmsRepositorySvn.fromTesting(repo));
+		this(CmsRepositorySvn.fromTesting(repo), repo.getSvnkitProvider());
 	}
 
-	public ReposTestBackendCmsTestingSvn(CmsRepositorySvn repo) {
+	public ReposTestBackendCmsTestingSvn(CmsRepositorySvn repo, Provider<SVNRepository> svnkitProvider) {
 		this.repository = repo;
+		this.svnkitProvider = svnkitProvider;
 	}	
 	
 	@Override
 	public Module getConfiguration() {
-		return new SingleRepoSvnkitIndexingModule(repository);
+		return new SingleRepoSvnkitIndexingModule(repository, svnkitProvider);
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import com.google.inject.name.Names;
 class SingleRepoSvnkitIndexingModule extends AbstractModule {
 
 	private final CmsRepositorySvn repository;
-	//private final Provider<SVNRepository> svnkitProvider;
+	private final Provider<SVNRepository> svnkitProvider;
 
 	/*
 	public SingleRepoSvnkitIndexingModule(CmsTestRepository repository) {
@@ -33,9 +33,9 @@ class SingleRepoSvnkitIndexingModule extends AbstractModule {
 	}
 	*/
 
-	public SingleRepoSvnkitIndexingModule(CmsRepositorySvn repository/*, Provider<SVNRepository> svnkitProvider*/) {
+	public SingleRepoSvnkitIndexingModule(CmsRepositorySvn repository, Provider<SVNRepository> svnkitProvider) {
 		this.repository = repository;
-		//this.svnkitProvider = svnkitProvider;
+		this.svnkitProvider = svnkitProvider;
 	}	
 	
 	@Override
@@ -43,13 +43,13 @@ class SingleRepoSvnkitIndexingModule extends AbstractModule {
 		bind(CmsRepository.class).toInstance(repository);
 		bind(CmsRepositorySvn.class).toInstance(repository);
 		
-		// TODO: Need to inject SVNRepository now when no longer injecting Svnlook provider?
-		//bind(SVNRepository.class).toInstance(svnkitProvider.get());
+		// Need to inject SVNRepository now when no are no longer using svnlook.
+		bind(SVNRepository.class).toInstance(svnkitProvider.get());
 		
 		bind(CmsChangesetReader.class).to(CmsChangesetReaderSvnkit.class);
 		bind(CommitRevisionCache.class).to(CommitRevisionCacheRepo.class);
 		bind(CmsContentsReader.class).to(CmsContentsReaderSvnkit.class);
-		//bind(CmsRepositoryLookup.class).annotatedWith(Names.named("inspection")).to(CmsRepositoryLookupSvnkitLook.class); // deprecated, should not be in user-level context at all
+		bind(CmsRepositoryLookup.class).annotatedWith(Names.named("inspection")).to(CmsRepositoryLookupSvnkit.class); // deprecated, should not be in user-level context at all
 		bind(CmsRepositoryLookup.class).to(CmsRepositoryLookupSvnkit.class);
 	}
 
