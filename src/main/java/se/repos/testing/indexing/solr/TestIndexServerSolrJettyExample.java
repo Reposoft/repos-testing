@@ -47,7 +47,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	public static final String[] TRY_URLS = {
 		"http://localhost:18983/solr/",
 		"http://localhost:8983/solr/"
-	};
+	}; // Never add port 8984 (used for production and could delete production cores when using SSH port forward)
 
 	static File trySolrParentPaths() {
 		StringBuffer tried = new StringBuffer();
