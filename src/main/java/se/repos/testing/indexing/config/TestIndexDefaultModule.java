@@ -4,6 +4,8 @@
 package se.repos.testing.indexing.config;
 
 
+import com.google.inject.AbstractModule;
+
 import se.repos.indexing.IndexAdmin;
 import se.repos.indexing.ReposIndexing;
 import se.repos.indexing.item.ItemContentBufferStrategy;
@@ -13,11 +15,8 @@ import se.repos.indexing.repository.ReposIndexingPerRepository;
 import se.repos.indexing.scheduling.IndexingSchedule;
 import se.repos.indexing.scheduling.IndexingScheduleBlockingOnly;
 import se.repos.indexing.twophases.ItemContentsMemory;
-import se.repos.indexing.twophases.ItemContentsStream;
 import se.repos.indexing.twophases.ItemPropertiesImmediate;
-
-import com.google.inject.AbstractModule;
-
+import se.repos.testing.indexing.TestIndexOptions;
 import se.simonsoft.cms.item.indexing.IdStrategy;
 import se.simonsoft.cms.item.indexing.IdStrategyDefault;
 
@@ -36,7 +35,7 @@ public class TestIndexDefaultModule extends AbstractModule {
 		
 		bind(IdStrategy.class).to(IdStrategyDefault.class);
 		bind(ItemPropertiesBufferStrategy.class).to(ItemPropertiesImmediate.class);
-		bind(ItemContentBufferStrategy.class).to(ItemContentsStream.class);
+		bind(ItemContentBufferStrategy.class).to(ItemContentsMemory.class);
 	}
 
 }
