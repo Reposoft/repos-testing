@@ -43,14 +43,16 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	//private static final String MKFIFO_OPTIONS = " -m 0666"; // BSD / macOS does not support "--mode".	
 	
 	private final CmsRepositorySvn repository;
+	private File repositoryLocalPath;
 	private final Provider<SVNRepository> svnkitProvider;
 
 	public ReposTestBackendCmsTestingSvn(CmsTestRepository repo) {
-		this(CmsRepositorySvn.fromTesting(repo), repo.getSvnkitProvider());
+		this(CmsRepositorySvn.fromTesting(repo), repo.getAdminPath(), repo.getSvnkitProvider());
 	}
 
-	public ReposTestBackendCmsTestingSvn(CmsRepositorySvn repo, Provider<SVNRepository> svnkitProvider) {
+	private ReposTestBackendCmsTestingSvn(CmsRepositorySvn repo, File repositoryLocalPath, Provider<SVNRepository> svnkitProvider) {
 		this.repository = repo;
+		this.repositoryLocalPath = repositoryLocalPath;
 		this.svnkitProvider = svnkitProvider;
 	}	
 	
@@ -63,7 +65,7 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 	public void activate(Injector context, HookInvocation postcommit) {
 		CmsRepositoryLookup lookup = context.getInstance(Key.get(CmsRepositoryLookup.class, Names.named("inspection")));
 		HookInvocationLookupProxy hooks = new HookInvocationLookupProxy(repository, lookup, postcommit);
-		installHooks(repository, hooks);
+		installHooks(repository, repositoryLocalPath, hooks);
 		syncHead(repository, lookup, hooks);
 	}
 
@@ -75,8 +77,7 @@ public class ReposTestBackendCmsTestingSvn implements ReposTestBackend {
 		}
 	}
 	
-	private void installHooks(CmsRepositorySvn repository, final HookInvocationLookupProxy hooks) {
-		File repositoryLocalPath = repository.getAdminPath();
+	private void installHooks(CmsRepositorySvn repository, File repositoryLocalPath, final HookInvocationLookupProxy hooks) {
 		File hooksdir = new File(repositoryLocalPath, "hooks");
 		if (!hooksdir.exists()) {
 			throw new IllegalArgumentException("No hooks folder found in repository path " + repositoryLocalPath);
