@@ -13,7 +13,6 @@ import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.item.inspection.CmsChangesetReader;
 import se.simonsoft.cms.item.inspection.CmsContentsReader;
-import se.simonsoft.cms.testing.svn.CmsTestRepository;
 
 import javax.inject.Provider;
 
