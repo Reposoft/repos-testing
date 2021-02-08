@@ -68,14 +68,10 @@
 			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sonatype.sisu</groupId>
-			<artifactId>sisu-guice</artifactId>
-			<version>3.1.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.sonatype.sisu.inject</groupId>
-			<artifactId>guice-multibindings</artifactId>
-			<version>3.1.7</version>		
+  			<groupId>com.google.inject</groupId>
+  			<artifactId>guice</artifactId>
+  			<version>4.2.3</version>
+  			<classifier>no_aop</classifier>
 		</dependency>	
 		<!-- for PathMatchingResourcePatternResolver extraction of index from classpath -->
 		<dependency>
