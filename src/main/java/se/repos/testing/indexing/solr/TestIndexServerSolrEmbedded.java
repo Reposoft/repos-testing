@@ -54,7 +54,6 @@ public class TestIndexServerSolrEmbedded extends TestIndexServerSolrHome
 	
 	protected void createServer() {
 		container = CoreContainer.createAndLoad(instanceDir.toPath());
-		container.load();
 	}
 	
 
