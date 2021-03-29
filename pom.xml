@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>repos-indexing</artifactId>
-			<version>0.20.0-SNAPSHOT</version>
+			<version>0.20.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
 		<!-- Would like to upgrade to core Guice no_aop but seems incompatible with guava version used by SolR 6.6.6. -->
 		<dependency>
@@ -93,7 +93,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-item</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>3.0.0</version>
 		</dependency>
 	</dependencies>
 	
