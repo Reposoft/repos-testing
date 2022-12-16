@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>repos-testing</artifactId>
-	<version>0.21.0-SNAPSHOT</version>
+	<version>0.21.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>${project.artifactId}-${project.version}</name>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-testing</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>3.1.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-backend-svnkit</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>3.1.2-SNAPSHOT</version>
 		</dependency>
 		<!-- Would like to upgrade to core Guice no_aop but seems incompatible with guava version used by SolR 6.6.6. -->
 		<dependency>
@@ -93,7 +93,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-item</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>3.1.4</version>
 		</dependency>
 	</dependencies>
 	

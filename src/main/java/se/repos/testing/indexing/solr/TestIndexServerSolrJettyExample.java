@@ -15,7 +15,7 @@ import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestClient;
 import se.repos.restclient.RestResponseBean;
 import se.repos.restclient.RestURL;
-import se.repos.restclient.javase.RestClientJavaNet;
+import se.repos.restclient.javase.RestClientJavaHttp;
 import se.repos.testing.indexing.TestIndexOptions;
 import se.repos.testing.indexing.TestIndexServer;
 
@@ -74,7 +74,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	
 	static boolean isHttpUrlSolrRoot(String httpUrl) {
 		RestURL restUrl = new RestURL(httpUrl);
-		RestClient restClientJavaNet = new RestClientJavaNet(restUrl.r(), null);
+		RestClient restClientJavaNet = new RestClientJavaHttp(restUrl.r(), null);
 		ResponseHeaders head;
 		try {
 			head = restClientJavaNet.head(restUrl.p());
@@ -121,7 +121,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 	void coreUnload(String coreName) {
 		// https://wiki.apache.org/solr/CoreAdmin
 		RestURL restUrl = new RestURL(url + "admin/cores?action=UNLOAD&core=" + coreName + "&deleteInstanceDir=true");
-		RestClient restClientJavaNet = new RestClientJavaNet(restUrl.r(), null);
+		RestClient restClientJavaNet = new RestClientJavaHttp(restUrl.r(), null);
 		RestResponseBean response = new RestResponseBean();
 		try {
 			restClientJavaNet.get(restUrl.p(), response);
@@ -138,7 +138,7 @@ public class TestIndexServerSolrJettyExample extends TestIndexServerSolrHome imp
 		// https://wiki.apache.org/solr/CoreAdmin
 		
 		RestURL restUrl = new RestURL(url + "admin/cores?action=CREATE&name=" + coreName);
-		RestClient restClientJavaNet = new RestClientJavaNet(restUrl.r(), null);
+		RestClient restClientJavaNet = new RestClientJavaHttp(restUrl.r(), null);
 		RestResponseBean response = new RestResponseBean();
 		try {
 			restClientJavaNet.get(restUrl.p(), response);
