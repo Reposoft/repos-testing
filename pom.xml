@@ -83,7 +83,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<!-- newer spring core jars are much bigger -->
-			<version>1.2.9</version>
+			<version>5.2.24.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
